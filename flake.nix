@@ -1,0 +1,34 @@
+{
+  description = "Basalt — a Material 3 desktop shell for NixOS (Hyprland + QuickShell). Zero telemetry, zero network, fully declarative.";
+
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
+  outputs = { self, nixpkgs, ... }:
+    let
+      systems = [ "x86_64-linux" "aarch64-linux" ];
+      forAllSystems = nixpkgs.lib.genAttrs systems;
+    in
+    {
+      packages = forAllSystems (system:
+        let pkgs = nixpkgs.legacyPackages.${system}; in
+        {
+          default = pkgs.callPackage ./package.nix { rev = self.rev or self.dirtyRev or "dirty"; };
+          basalt = self.packages.${system}.default;
+        });
+
+      devShells = forAllSystems (system:
+        let pkgs = nixpkgs.legacyPackages.${system}; in
+        {
+          # Dev loop: nix develop -c qs -p src
+          default = pkgs.mkShell {
+            packages = [ pkgs.quickshell ];
+          };
+        });
+
+      homeManagerModules.default = import ./modules/hm.nix { inherit self; };
+      homeManagerModules.basalt = self.homeManagerModules.default;
+
+      nixosModules.default = import ./modules/nixos.nix;
+      nixosModules.basalt = self.nixosModules.default;
+    };
+}
