@@ -57,9 +57,10 @@ Singleton {
         persistenceSupported: true
 
         onNotification: (toast) => {
-            // House rule: toasts live 3 seconds, regardless of what the
-            // app asked for.
-            toast.expireTimeout = 3000;
+            // House rule: toasts live 3 seconds. NOTE: expireTimeout is
+            // READ-ONLY in quickshell 0.3.1 — assigning it throws and
+            // would abort this handler (the history push below never
+            // ran). The toastExpireTimer enforces the 3s instead.
             root.push({
                 id: toast.id,
                 appName: toast.appName || "unknown",
