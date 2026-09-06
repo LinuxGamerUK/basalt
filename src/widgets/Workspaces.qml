@@ -55,9 +55,10 @@ RowLayout {
             implicitWidth: 24
             implicitHeight: Theme.chipHeight - 8
             radius: height / 2
-            // One visual format for every pill — missing workspaces are the
-            // same style at reduced opacity, never a different palette.
-            opacity: live ? 1.0 : 0.5
+            // One visual format for every pill, always — Hyprland
+            // auto-destroys empty non-persistent workspaces, so "missing"
+            // is a transient state and must not read as a broken style.
+            // Click materializes the workspace on this screen.
             color: isActive ? Theme.primary : Theme.surfaceContainerHigh
             border.width: 1
             border.color: isActive ? Theme.primary : Theme.outline
