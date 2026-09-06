@@ -22,7 +22,18 @@ ShellRoot {
         model: Quickshell.screens
 
         delegate: Component {
-            Bar {}
+            NotificationToasts {}
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        delegate: Component {
+            Bar {
+                required property var modelData
+                screen: modelData
+            }
         }
     }
 }

@@ -30,3 +30,7 @@ starship = { format = "file", input_path = "./starship-template.toml", output_pa
 
 # fastfetch palette include — HM fastfetch config includes this.
 fastfetch = { format = "json", input_path = "./fastfetch-template.jsonc", output_path = "~/.config/basalt/themes/fastfetch-palette.jsonc" }
+
+# Canonical palette file — consumed by the Hyprland border script (and
+# anything else that wants the raw palette).
+palette = { format = "json", input_path = "./palette-file-template.json", output_path = "~/.config/basalt/themes/palette.json" }

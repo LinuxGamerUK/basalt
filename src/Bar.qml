@@ -19,6 +19,7 @@ PanelWindow {
     // rule: open only on the screen that was clicked).
     readonly property bool calendarOpen: Ui.calendarScreen === root.screenName
     readonly property bool pickerOpen: Ui.pickerScreen === root.screenName
+    readonly property bool notificationsOpen: Ui.notificationsScreen === root.screenName
     readonly property string screenName: root.modelData ? root.modelData.name : ""
 
     anchors {
@@ -75,7 +76,7 @@ PanelWindow {
                 Layout.fillWidth: true
             }
 
-            // Right: tray, then the wallpaper picker button rightmost
+            // Right: tray, then the picker and notifications buttons rightmost
             Tray {}
             Rectangle {
                 id: wallBtn
@@ -94,6 +95,32 @@ PanelWindow {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onClicked: Ui.togglePicker(root.screenName)
+                }
+            }
+            Rectangle {
+                id: bellBtn
+                implicitWidth: Theme.chipHeight
+                implicitHeight: Theme.chipHeight
+                radius: height / 2
+                color: root.notificationsOpen
+                    ? Theme.primary : Theme.surfaceContainerHigh
+                Text {
+                    anchors.centerIn: parent
+                    text: NotificationsState.unread > 0
+                        ? "\uf0a02 " + NotificationsState.unread
+                        : "\uf0a02"
+                    color: root.notificationsOpen
+                        ? Theme.textOnPrimary : Theme.text
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSize
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        NotificationsState.markSeen();
+                        Ui.toggleNotifications(root.screenName);
+                    }
                 }
             }
         }
@@ -140,6 +167,24 @@ PanelWindow {
         WallpaperPicker {
             anchors.fill: parent
             onCloseRequested: Ui.pickerScreen = ""
+        }
+    }
+
+    // Notification history — right-aligned under the bell.
+    PopupWindow {
+        id: notificationsPopup
+        anchor.window: root
+        anchor.edges: Edges.Bottom
+        anchor.rect.x: Math.max(8, root.width - 456)
+        anchor.rect.y: Theme.barHeight + Theme.barMargin * 2
+        visible: root.notificationsOpen
+        implicitWidth: Math.round(440 * Theme.uiScale)
+        implicitHeight: Math.round(520 * Theme.uiScale)
+        color: "transparent"
+
+        NotificationHistory {
+            anchors.fill: parent
+            onCloseRequested: Ui.notificationsScreen = ""
         }
     }
 }

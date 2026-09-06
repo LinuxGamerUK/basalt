@@ -101,10 +101,23 @@ Singleton {
 
     // Theme broadcast — writes ghostty/fish/starship/fastfetch theme files
     // under ~/.config/basalt/themes via the same palette.
+    // Broadcast follow-up — apply the palette to Hyprland's window borders
+    // (the socket eval + hl.config route; `hyprctl keyword` is dead in
+    // lua mode).
     Process {
         id: broadcastProc
         stdout: StdioCollector {}
         stderr: StdioCollector {}
+        onExited: {
+            const script = Qt.resolvedUrl("scripts/hyprland-theme.sh").toString().replace(/^file:\/\//, "");
+            borderProc.command = ["bash", script];
+            borderProc.running = true;
+        }
+    }
+
+    Process {
+        id: borderProc
+        stdout: StdioCollector {}
     }
 
     Process {
