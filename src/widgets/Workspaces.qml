@@ -15,9 +15,10 @@ RowLayout {
 
     // Only the workspaces that live on THIS screen (house layout:
     // 1–5 on eDP-1, 6–10 on the desk monitor — see hyprland.lua).
+    // Hyprland.workspaces is an ObjectModel — iterate .values.
     readonly property var screenWorkspaces: {
         const out = [];
-        const ws = Hyprland.workspaces;
+        const ws = Hyprland.workspaces.values;
         for (let i = 0; i < ws.length; i++) {
             const w = ws[i];
             if (w.monitor && w.monitor.name === root.screenName) {
@@ -30,7 +31,7 @@ RowLayout {
     spacing: 4
 
     Component.onCompleted: console.log("[basalt] workspaces — screen:", root.screenName,
-        "| hyprland total:", Hyprland.workspaces.length,
+        "| hyprland total:", Hyprland.workspaces.values.length,
         "| on this screen:", root.screenWorkspaces.length)
 
     Repeater {
