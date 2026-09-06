@@ -104,16 +104,39 @@ PanelWindow {
                 radius: height / 2
                 color: root.notificationsOpen
                     ? Theme.primary : Theme.surfaceContainerHigh
+
                 Text {
                     anchors.centerIn: parent
-                    text: NotificationsState.unread > 0
-                        ? "\uf0a02 " + NotificationsState.unread
-                        : "\uf0a02"
+                    text: "\uf0f3"
                     color: root.notificationsOpen
                         ? Theme.textOnPrimary : Theme.text
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSize
                 }
+
+                // Unread badge — a small dot pinned to the bell's corner.
+                Rectangle {
+                    visible: NotificationsState.unread > 0
+                        && !root.notificationsOpen
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    anchors.topMargin: 3
+                    anchors.rightMargin: 3
+                    implicitWidth: 16
+                    implicitHeight: 16
+                    radius: 8
+                    color: Theme.error
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: NotificationsState.unread
+                        color: Theme.surface
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSize - 6
+                        font.bold: true
+                    }
+                }
+
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor

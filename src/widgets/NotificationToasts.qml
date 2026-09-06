@@ -15,9 +15,12 @@ PanelWindow {
     property var modelData
     screen: modelData
     // Toasts render on the primary screen only — a global event, not a
-    // per-screen one (the house per-screen rule is for clicked panels).
+    // per-screen one (the house per-screen rule is for clicked panels) —
+    // and hide entirely when there's nothing to show (a collapsed
+    // transparent surface would otherwise float over the desktop).
     visible: root.modelData
         ? root.modelData.name === (Theme.settings.primaryScreen || "eDP-1")
+            && NotificationsState.serverRef.trackedNotifications.values.length > 0
         : false
 
     anchors {

@@ -18,13 +18,15 @@ sig = os.environ.get("HYPRLAND_INSTANCE_SIGNATURE")
 if not sig:
     sys.exit(0)
 
-def hexn(v):
+def hexn(v, alpha):
+    # Hyprland's RAW gradient form needs 8-digit ARGB (alpha first) —
+    # 6-digit values parse as invalid and the borders vanish.
     v = (v or "").strip().lstrip("#")
-    return "0x" + v if v else ""
+    return ("0x" + alpha + v) if v else ""
 
-primary = hexn(p.get("primary"))
-secondary = hexn(p.get("secondary"))
-outline = hexn(p.get("outline_variant"))
+primary = hexn(p.get("primary"), "ee")
+secondary = hexn(p.get("secondary"), "ee")
+outline = hexn(p.get("outline_variant"), "aa")
 if not primary:
     sys.exit(0)
 
