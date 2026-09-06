@@ -19,15 +19,18 @@ Singleton {
     property string notificationsScreen: ""
     property string launcherScreen: ""
     property string mixerScreen: ""
+    property string brightnessScreen: ""
 
     readonly property bool anythingOpen: pickerScreen !== "" || calendarScreen !== ""
         || notificationsScreen !== "" || launcherScreen !== "" || mixerScreen !== ""
+        || brightnessScreen !== ""
 
     function togglePicker(screen) {
         calendarScreen = "";
         notificationsScreen = "";
         launcherScreen = "";
         mixerScreen = "";
+        brightnessScreen = "";
         root.pickerScreen = (root.pickerScreen === screen) ? "" : screen;
     }
 
@@ -36,6 +39,7 @@ Singleton {
         notificationsScreen = "";
         launcherScreen = "";
         mixerScreen = "";
+        brightnessScreen = "";
         root.calendarScreen = (root.calendarScreen === screen) ? "" : screen;
     }
 
@@ -44,6 +48,7 @@ Singleton {
         calendarScreen = "";
         launcherScreen = "";
         mixerScreen = "";
+        brightnessScreen = "";
         root.notificationsScreen = (root.notificationsScreen === screen) ? "" : screen;
     }
 
@@ -52,6 +57,7 @@ Singleton {
         calendarScreen = "";
         notificationsScreen = "";
         mixerScreen = "";
+        brightnessScreen = "";
         root.launcherScreen = (root.launcherScreen === screen) ? "" : screen;
     }
 
@@ -60,7 +66,17 @@ Singleton {
         calendarScreen = "";
         notificationsScreen = "";
         launcherScreen = "";
+        brightnessScreen = "";
         root.mixerScreen = (root.mixerScreen === screen) ? "" : screen;
+    }
+
+    function toggleBrightness(screen) {
+        pickerScreen = "";
+        calendarScreen = "";
+        notificationsScreen = "";
+        launcherScreen = "";
+        mixerScreen = "";
+        root.brightnessScreen = (root.brightnessScreen === screen) ? "" : screen;
     }
 
     function closeAll() {
@@ -69,5 +85,6 @@ Singleton {
         notificationsScreen = "";
         launcherScreen = "";
         mixerScreen = "";
+        brightnessScreen = "";
     }
 }

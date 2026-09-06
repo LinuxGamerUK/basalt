@@ -25,6 +25,7 @@ PanelWindow {
     readonly property bool notificationsOpen: Ui.notificationsScreen === root.screenName
     readonly property bool launcherOpen: Ui.launcherScreen === root.screenName
     readonly property bool mixerOpen: Ui.mixerScreen === root.screenName
+    readonly property bool brightnessOpen: Ui.brightnessScreen === root.screenName
     readonly property string screenName: root.modelData ? root.modelData.name : ""
 
     anchors {
@@ -221,7 +222,7 @@ PanelWindow {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: Ui.toggleMixer(root.screenName)
+                    onClicked: Ui.toggleBrightness(root.screenName)
                     onWheel: (wheel) => {
                         const step = wheel.angleDelta.y > 0 ? 0.05 : -0.05;
                         const next = Math.max(0, Math.min(1,
@@ -379,6 +380,23 @@ PanelWindow {
         color: Qt.rgba(0, 0, 0, 0)
 
         Mixer {
+            anchors.fill: parent
+        }
+    }
+
+    // Brightness panel — the sun chip's own popup.
+    PopupWindow {
+        id: brightnessPopup
+        anchor.window: root
+        anchor.edges: Edges.Bottom
+        anchor.rect.x: Math.max(8, root.width - 386)
+        anchor.rect.y: Theme.barHeight + Theme.barMargin * 2
+        visible: root.brightnessOpen
+        implicitWidth: Math.round(370 * Theme.uiScale)
+        implicitHeight: Math.round(120 * Theme.uiScale)
+        color: Qt.rgba(0, 0, 0, 0)
+
+        BrightnessPanel {
             anchors.fill: parent
         }
     }
