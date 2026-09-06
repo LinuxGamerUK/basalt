@@ -48,6 +48,9 @@ Basalt has a short, non-negotiable list of rules:
 - **Material You theming** — the palette is generated *locally* by
   [matugen](https://github.com/InioX/matugen) from your wallpaper (or any
   source color), with a hand-tuned dark palette as the fallback
+- **Wallpaper picker** — folder selector + thumbnail grid; picking a
+  wallpaper sets it through hyprpaper, persists it across reboots, and
+  re-themes the entire shell from its accent colors, live
 - **JetBrains Mono Nerd Font Propo** typography by default
 
 ## Requirements
@@ -59,8 +62,11 @@ Basalt has a short, non-negotiable list of rules:
 - **[home-manager](https://github.com/nix-community/home-manager)** (flake)
 - **quickshell ≥ 0.3.1** — the flake pins an nixpkgs rev that carries it
   (0.3.0 lacks the Hyprland IPC API Basalt is built on)
-- **[matugen](https://github.com/InioX/matugen)** (optional) — in nixpkgs;
-  needed only for Material You palette generation, which is local-only
+- **[matugen](https://github.com/InioX/matugen)** — in nixpkgs; generates
+  the Material You palette locally
+- **[hyprpaper](https://github.com/hyprwm/hyprpaper)** — in nixpkgs; the
+  wallpaper engine the picker drives (the module ships a systemd user
+  service for it)
 
 ## Installation
 
@@ -132,7 +138,6 @@ documented:
 
 ## Roadmap
 
-- Wallpaper selector (first popup panel — writes the theming source above)
 - Notifications + OSD (volume/brightness)
 - Launcher
 - Lock screen, media popup, settings UI
