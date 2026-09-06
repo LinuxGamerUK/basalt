@@ -67,5 +67,15 @@ RowLayout {
             }
         }
         stderr: StdioCollector {}
+        // Respawn: cava dies when its capture source briefly disappears
+        // (e.g. an Arctis Sound Manager filter-chain restart removes the
+        // monitor from the bus) — bring it back after a beat.
+        onExited: respawnTimer.restart()
+    }
+
+    Timer {
+        id: respawnTimer
+        interval: 1500
+        onTriggered: cavaProc.running = true
     }
 }
