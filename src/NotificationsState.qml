@@ -62,12 +62,16 @@ Singleton {
                 + " summary=" + (toast.summary || "")
                 + " tracked=" + toast.tracked
                 + " expire=" + toast.expireTimeout);
-            Qt.callLater(() => console.log("tracked count:",
-                server.trackedNotifications.values.length));
-            // House rule: toasts live 3 seconds. NOTE: expireTimeout is
-            // READ-ONLY in quickshell 0.3.1 — assigning it throws and
-            // would abort this handler (the history push below never
-            // ran). The toastExpireTimer enforces the 3s instead.
+            // THE CONTRACT (from the qs source): after the notification
+            // signal, the server deletes any toast the handler did NOT
+            // mark tracked. `toast.tracked = true` keeps it alive and
+            // adds it to trackedNotifications — that's what the toasts
+            // window renders. Without this the toast is deleted on
+            // arrival and the log shows tracked=false, count 0.
+            toast.tracked = true;
+            // House rule: toasts live 3 seconds. expireTimeout is
+            // READ-ONLY in 0.3.1 (assigning it throws) — the
+            // toastExpireTimer enforces the 3s instead.
             root.push({
                 id: toast.id,
                 appName: toast.appName || "unknown",
@@ -78,8 +82,8 @@ Singleton {
                 urgency: toast.urgency ?? 0,
                 time: Qt.formatDateTime(new Date(), "HH:mm"),
             });
-            // Auto-expire after 3s — the server tracks it; expire() to be
-            // sure a zero/never-expire timeout still clears.
+            // Auto-expire after 3s — expire() closes + untracks the toast,
+            // and the toasts window follows trackedNotifications.
             Qt.callLater(() => {
                 if (toast.tracked) {
                     toastExpireTimer.toast = toast;
