@@ -7,50 +7,60 @@ import Quickshell
 // close-all hook.
 //
 // HOUSE RULE: a popup opens ONLY on the screen whose bar button was
-// clicked ("pickerScreen"/"calendarScreen"/"notificationsScreen"/
-// "launcherScreen" hold that screen's name). Clicking the same button
-// again closes it. Clicking anywhere outside an open popup (any screen)
-// closes it. Opening a popup on another screen moves it there unchanged —
-// state is shared, not per-instance. The launcher is the exception in
-// TRIGGER (keybind or button) but follows the same one-at-a-time rule.
+// clicked. Clicking the same button again closes it. Clicking anywhere
+// outside an open popup (any screen) closes it. Opening a popup on
+// another screen moves it there unchanged — state is shared, not
+// per-instance. One-at-a-time across all of them.
 Singleton {
     id: root
 
-    property string pickerScreen: ""   // screen name showing the picker, "" = closed
-    property string calendarScreen: "" // screen name showing the calendar, "" = closed
-    property string notificationsScreen: "" // screen name showing the history, "" = closed
-    property string launcherScreen: "" // screen name showing the launcher, "" = closed
+    property string pickerScreen: ""
+    property string calendarScreen: ""
+    property string notificationsScreen: ""
+    property string launcherScreen: ""
+    property string mixerScreen: ""
 
     readonly property bool anythingOpen: pickerScreen !== "" || calendarScreen !== ""
-        || notificationsScreen !== "" || launcherScreen !== ""
+        || notificationsScreen !== "" || launcherScreen !== "" || mixerScreen !== ""
 
-    // Toggle the picker for a specific screen.
     function togglePicker(screen) {
-        if (calendarScreen !== "") calendarScreen = "";
-        if (notificationsScreen !== "") notificationsScreen = "";
-        if (launcherScreen !== "") launcherScreen = "";
+        calendarScreen = "";
+        notificationsScreen = "";
+        launcherScreen = "";
+        mixerScreen = "";
         root.pickerScreen = (root.pickerScreen === screen) ? "" : screen;
     }
 
     function toggleCalendar(screen) {
-        if (pickerScreen !== "") pickerScreen = "";
-        if (notificationsScreen !== "") notificationsScreen = "";
-        if (launcherScreen !== "") launcherScreen = "";
+        pickerScreen = "";
+        notificationsScreen = "";
+        launcherScreen = "";
+        mixerScreen = "";
         root.calendarScreen = (root.calendarScreen === screen) ? "" : screen;
     }
 
     function toggleNotifications(screen) {
-        if (pickerScreen !== "") pickerScreen = "";
-        if (calendarScreen !== "") calendarScreen = "";
-        if (launcherScreen !== "") launcherScreen = "";
+        pickerScreen = "";
+        calendarScreen = "";
+        launcherScreen = "";
+        mixerScreen = "";
         root.notificationsScreen = (root.notificationsScreen === screen) ? "" : screen;
     }
 
     function toggleLauncher(screen) {
-        if (pickerScreen !== "") pickerScreen = "";
-        if (calendarScreen !== "") calendarScreen = "";
-        if (notificationsScreen !== "") notificationsScreen = "";
+        pickerScreen = "";
+        calendarScreen = "";
+        notificationsScreen = "";
+        mixerScreen = "";
         root.launcherScreen = (root.launcherScreen === screen) ? "" : screen;
+    }
+
+    function toggleMixer(screen) {
+        pickerScreen = "";
+        calendarScreen = "";
+        notificationsScreen = "";
+        launcherScreen = "";
+        root.mixerScreen = (root.mixerScreen === screen) ? "" : screen;
     }
 
     function closeAll() {
@@ -58,5 +68,6 @@ Singleton {
         calendarScreen = "";
         notificationsScreen = "";
         launcherScreen = "";
+        mixerScreen = "";
     }
 }

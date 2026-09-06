@@ -1,0 +1,332 @@
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+
+import "root:/"
+
+// Mixer panel — output/input volume sliders with mute, the device
+// lists, and the brightness slider. Opened on click from the bar's
+// volume/brightness chips.
+Rectangle {
+    id: root
+
+    color: Theme.surfaceContainer
+    radius: 20
+    border.color: Theme.outlineVariant
+    border.width: 1
+
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: 14
+        spacing: 10
+
+        // Output
+        Text {
+            text: "OUTPUT"
+            color: Theme.textSecondary
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSize - 3
+            font.bold: true
+        }
+
+        Text {
+            Layout.fillWidth: true
+            visible: MixerState.sinkName !== ""
+            text: MixerState.sinkName
+            color: Theme.text
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSize - 2
+            elide: Text.ElideRight
+            maximumLineCount: 1
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 10
+
+            Text {
+                text: MixerState.sinkMuted ? "󰝟" : "󰕾"
+                color: MixerState.sinkMuted ? Theme.error : Theme.primary
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSize
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: MixerState.toggleSinkMuted()
+                }
+            }
+
+            Slider {
+                id: sinkSlider
+                Layout.fillWidth: true
+                from: 0
+                to: 1
+                value: MixerState.sinkVolume
+                onMoved: MixerState.setSinkVolume(value)
+
+                background: Rectangle {
+                    x: sinkSlider.leftPadding
+                    y: sinkSlider.topPadding + sinkSlider.availableHeight / 2 - height / 2
+                    width: sinkSlider.availableWidth
+                    height: 10
+                    radius: 5
+                    color: Theme.surfaceContainerHigh
+
+                    Rectangle {
+                        width: sinkSlider.visualPosition * parent.width
+                        height: parent.height
+                        radius: 5
+                        color: MixerState.sinkMuted ? Theme.error : Theme.primary
+                    }
+                }
+
+                handle: Rectangle {
+                    x: sinkSlider.leftPadding + sinkSlider.visualPosition * sinkSlider.availableWidth - width / 2
+                    y: sinkSlider.topPadding + sinkSlider.availableHeight / 2 - height / 2
+                    width: 18
+                    height: 18
+                    radius: 9
+                    color: Theme.text
+                    border.color: Theme.primary
+                    border.width: 2
+                }
+            }
+
+            Text {
+                text: Math.round(MixerState.sinkVolume * 100) + "%"
+                color: Theme.text
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSize - 3
+                Layout.preferredWidth: 40
+                horizontalAlignment: Text.AlignRight
+            }
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: 1
+            color: Theme.outlineVariant
+        }
+
+        // Input
+        Text {
+            text: "INPUT"
+            color: Theme.textSecondary
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSize - 3
+            font.bold: true
+        }
+
+        Text {
+            Layout.fillWidth: true
+            visible: MixerState.sourceName !== ""
+            text: MixerState.sourceName
+            color: Theme.text
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSize - 2
+            elide: Text.ElideRight
+            maximumLineCount: 1
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 10
+
+            Text {
+                text: "󰍬"
+                color: Theme.primary
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSize
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: MixerState.toggleSourceMuted()
+                }
+            }
+
+            Slider {
+                id: sourceSlider
+                Layout.fillWidth: true
+                from: 0
+                to: 1
+                value: MixerState.sourceVolume
+                onMoved: MixerState.setSourceVolume(value)
+
+                background: Rectangle {
+                    x: sourceSlider.leftPadding
+                    y: sourceSlider.topPadding + sourceSlider.availableHeight / 2 - height / 2
+                    width: sourceSlider.availableWidth
+                    height: 10
+                    radius: 5
+                    color: Theme.surfaceContainerHigh
+
+                    Rectangle {
+                        width: sourceSlider.visualPosition * parent.width
+                        height: parent.height
+                        radius: 5
+                        color: Theme.primary
+                    }
+                }
+
+                handle: Rectangle {
+                    x: sourceSlider.leftPadding + sourceSlider.visualPosition * sourceSlider.availableWidth - width / 2
+                    y: sourceSlider.topPadding + sourceSlider.availableHeight / 2 - height / 2
+                    width: 18
+                    height: 18
+                    radius: 9
+                    color: Theme.text
+                    border.color: Theme.primary
+                    border.width: 2
+                }
+            }
+
+            Text {
+                text: Math.round(MixerState.sourceVolume * 100) + "%"
+                color: Theme.text
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSize - 3
+                Layout.preferredWidth: 40
+                horizontalAlignment: Text.AlignRight
+            }
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: 1
+            color: Theme.outlineVariant
+        }
+
+        // Devices
+        Text {
+            text: "OUTPUT DEVICES"
+            color: Theme.textSecondary
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSize - 4
+            font.bold: true
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 3
+
+            Repeater {
+                model: MixerState.sinks
+
+                delegate: Text {
+                    required property var modelData
+
+                    Layout.fillWidth: true
+                    text: "• " + (modelData.name || "unknown")
+                    color: Theme.textSecondary
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSize - 4
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+            }
+        }
+
+        Text {
+            text: "INPUT DEVICES"
+            color: Theme.textSecondary
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSize - 4
+            font.bold: true
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 3
+
+            Repeater {
+                model: MixerState.sources
+
+                delegate: Text {
+                    required property var modelData
+
+                    Layout.fillWidth: true
+                    text: "• " + (modelData.name || "unknown")
+                    color: Theme.textSecondary
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSize - 4
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+            }
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: 1
+            color: Theme.outlineVariant
+        }
+
+        // Brightness
+        Text {
+            text: "BRIGHTNESS"
+            color: Theme.textSecondary
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSize - 3
+            font.bold: true
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 10
+
+            Text {
+                text: "󰃟"
+                color: Theme.primary
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSize
+            }
+
+            Slider {
+                id: brightSlider
+                Layout.fillWidth: true
+                from: 0
+                to: 1
+                value: MixerState.brightnessLevel
+                onMoved: MixerState.setBrightness(value)
+
+                background: Rectangle {
+                    x: brightSlider.leftPadding
+                    y: brightSlider.topPadding + brightSlider.availableHeight / 2 - height / 2
+                    width: brightSlider.availableWidth
+                    height: 10
+                    radius: 5
+                    color: Theme.surfaceContainerHigh
+
+                    Rectangle {
+                        width: brightSlider.visualPosition * parent.width
+                        height: parent.height
+                        radius: 5
+                        color: Theme.primary
+                    }
+                }
+
+                handle: Rectangle {
+                    x: brightSlider.leftPadding + brightSlider.visualPosition * brightSlider.availableWidth - width / 2
+                    y: brightSlider.topPadding + brightSlider.availableHeight / 2 - height / 2
+                    width: 18
+                    height: 18
+                    radius: 9
+                    color: Theme.text
+                    border.color: Theme.primary
+                    border.width: 2
+                }
+            }
+
+            Text {
+                text: Math.round(MixerState.brightnessLevel * 100) + "%"
+                color: Theme.text
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSize - 3
+                Layout.preferredWidth: 40
+                horizontalAlignment: Text.AlignRight
+            }
+        }
+    }
+}

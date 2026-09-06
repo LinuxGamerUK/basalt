@@ -24,6 +24,7 @@ PanelWindow {
     readonly property bool pickerOpen: Ui.pickerScreen === root.screenName
     readonly property bool notificationsOpen: Ui.notificationsScreen === root.screenName
     readonly property bool launcherOpen: Ui.launcherScreen === root.screenName
+    readonly property bool mixerOpen: Ui.mixerScreen === root.screenName
     readonly property string screenName: root.modelData ? root.modelData.name : ""
 
     anchors {
@@ -164,9 +165,7 @@ PanelWindow {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     acceptedButtons: Qt.LeftButton
-                    onClicked: if (volumeChip.audio) {
-                        volumeChip.audio.muted = !volumeChip.audio.muted;
-                    }
+                    onClicked: Ui.toggleMixer(root.screenName)
                     onWheel: (wheel) => {
                         if (volumeChip.audio) {
                             const step = wheel.angleDelta.y > 0 ? 0.05 : -0.05;
@@ -179,9 +178,11 @@ PanelWindow {
                 }
             }
 
-            // Brightness — the sysfs backlight; scroll ±5%.
-            property int brightCur: 0
-            property int brightMax: 1
+            // Brightness — the sysfs backlight; scroll ±5%. Level is
+            // 0% (dark) → 100% (bright) straight from sysfs cur/max;
+            // the chip stays blank until the first poll lands.
+            property int brightCur: -1
+            property int brightMax: -1
 
             Process {
                 id: barBrightRead
@@ -190,9 +191,9 @@ PanelWindow {
                 stdout: StdioCollector {
                     onStreamFinished: {
                         const parts = this.text.trim().split(/\s+/);
-                        const cur = parseInt(parts[0] || "0");
+                        const cur = parseInt(parts[0] || "-1");
                         const max = parseInt(parts[1] || "1");
-                        if (!isNaN(cur) && !isNaN(max) && max > 0) {
+                        if (!isNaN(cur) && cur >= 0 && !isNaN(max) && max > 0) {
                             root.brightCur = cur;
                             root.brightMax = max;
                         }
@@ -210,8 +211,8 @@ PanelWindow {
             Rectangle {
                 id: brightnessChip
 
-                readonly property real level: root.brightMax > 0
-                    ? root.brightCur / root.brightMax : 0
+                readonly property real level: root.brightCur >= 0
+                    ? root.brightCur / root.brightMax : -1
 
                 implicitWidth: 46
                 implicitHeight: Theme.chipHeight - 6
@@ -233,7 +234,9 @@ PanelWindow {
                     }
 
                     Text {
-                        text: Math.round(brightnessChip.level * 100) + "%"
+                        text: brightnessChip.level >= 0
+                            ? Math.round(brightnessChip.level * 100) + "%"
+                            : "…"
                         color: Theme.text
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSize - 3
@@ -250,6 +253,7 @@ PanelWindow {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
+                    onClicked: Ui.toggleMixer(root.screenName)
                     onWheel: (wheel) => {
                         const step = wheel.angleDelta.y > 0 ? 0.05 : -0.05;
                         const next = Math.max(0, Math.min(1,
@@ -392,6 +396,24 @@ PanelWindow {
         NotificationHistory {
             anchors.fill: parent
             onCloseRequested: Ui.notificationsScreen = ""
+        }
+    }
+
+    // Mixer — audio devices + input/output volumes + brightness. Opened
+    // on click from either chip, right-aligned under the bar.
+    PopupWindow {
+        id: mixerPopup
+        anchor.window: root
+        anchor.edges: Edges.Bottom
+        anchor.rect.x: Math.max(8, root.width - 416)
+        anchor.rect.y: Theme.barHeight + Theme.barMargin * 2
+        visible: root.mixerOpen
+        implicitWidth: Math.round(400 * Theme.uiScale)
+        implicitHeight: Math.round(520 * Theme.uiScale)
+        color: Qt.rgba(0, 0, 0, 0)
+
+        Mixer {
+            anchors.fill: parent
         }
     }
 }
