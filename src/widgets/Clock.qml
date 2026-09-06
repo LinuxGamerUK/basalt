@@ -10,8 +10,6 @@ Rectangle {
 
     signal clicked()
 
-    signal clicked()
-
     implicitWidth: timeText.implicitWidth + 28
     implicitHeight: Theme.chipHeight
     radius: Theme.chipRadius
