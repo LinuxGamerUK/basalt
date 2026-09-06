@@ -39,17 +39,12 @@ Rectangle {
                 font.pixelSize: Theme.fontSize + 4
             }
 
-            Slider {
+            VolumeSlider {
                 id: brightSlider
                 Layout.fillWidth: true
-                from: 0
-                to: 1
-                value: 0
+                Layout.preferredHeight: 24
+                value: MixerState.brightnessLevel
                 onMoved: MixerState.setBrightness(value)
-
-                // Same guard as the mixer sliders: the 250 ms sysfs poll
-                // must not yank the handle back mid-drag.
-                Component.onCompleted: value = MixerState.brightnessLevel
 
                 Connections {
                     target: MixerState
@@ -57,33 +52,6 @@ Rectangle {
                         if (!brightSlider.pressed)
                             brightSlider.value = MixerState.brightnessLevel;
                     }
-                }
-
-                background: Rectangle {
-                    x: brightSlider.leftPadding
-                    y: brightSlider.topPadding + brightSlider.availableHeight / 2 - height / 2
-                    width: brightSlider.availableWidth
-                    height: 12
-                    radius: 6
-                    color: Theme.surfaceContainerHigh
-
-                    Rectangle {
-                        width: brightSlider.visualPosition * parent.width
-                        height: parent.height
-                        radius: 6
-                        color: Theme.primary
-                    }
-                }
-
-                handle: Rectangle {
-                    x: brightSlider.leftPadding + brightSlider.visualPosition * brightSlider.availableWidth - width / 2
-                    y: brightSlider.topPadding + brightSlider.availableHeight / 2 - height / 2
-                    width: 20
-                    height: 20
-                    radius: 10
-                    color: Theme.text
-                    border.color: Theme.primary
-                    border.width: 2
                 }
             }
 

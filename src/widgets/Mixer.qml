@@ -66,58 +66,21 @@ Rectangle {
                 }
             }
 
-            Slider {
+            VolumeSlider {
                 id: sinkSlider
                 Layout.fillWidth: true
-                from: 0
-                to: 1
-                value: 0
-                onMoved: {
-                    MixerState.setSinkVolume(value);
-                    console.log("sinkSlider MOVED to", value);
-                }
+                Layout.preferredHeight: 24
+                value: MixerState.sinkVolume
+                muted: MixerState.sinkMuted
+                onMoved: MixerState.setSinkVolume(value)
 
-                // Imperative value sync: a reactive value-binding here
-                // yanks the handle back mid-drag on every PipeWire echo
-                // (the classic two-way-binding fight). Follow the server
-                // only while the user is not holding the handle.
-                Component.onCompleted: value = MixerState.sinkVolume
-
-                onPressedChanged: console.log("sinkSlider", pressed ? "PRESSED at" : "RELEASED at", value)
-
+                // Follow the PipeWire echo only while not dragging.
                 Connections {
                     target: MixerState
                     function onSinkVolumeChanged() {
                         if (!sinkSlider.pressed)
                             sinkSlider.value = MixerState.sinkVolume;
                     }
-                }
-
-                background: Rectangle {
-                    x: sinkSlider.leftPadding
-                    y: sinkSlider.topPadding + sinkSlider.availableHeight / 2 - height / 2
-                    width: sinkSlider.availableWidth
-                    height: 10
-                    radius: 5
-                    color: Theme.surfaceContainerHigh
-
-                    Rectangle {
-                        width: sinkSlider.visualPosition * parent.width
-                        height: parent.height
-                        radius: 5
-                        color: MixerState.sinkMuted ? Theme.error : Theme.primary
-                    }
-                }
-
-                handle: Rectangle {
-                    x: sinkSlider.leftPadding + sinkSlider.visualPosition * sinkSlider.availableWidth - width / 2
-                    y: sinkSlider.topPadding + sinkSlider.availableHeight / 2 - height / 2
-                    width: 18
-                    height: 18
-                    radius: 9
-                    color: Theme.text
-                    border.color: Theme.primary
-                    border.width: 2
                 }
             }
 
@@ -174,18 +137,13 @@ Rectangle {
                 }
             }
 
-            Slider {
+            VolumeSlider {
                 id: sourceSlider
                 Layout.fillWidth: true
-                from: 0
-                to: 1
-                value: 0
-                onMoved: {
-                    MixerState.setSourceVolume(value);
-                    console.log("sourceSlider MOVED to", value);
-                }
-
-                Component.onCompleted: value = MixerState.sourceVolume
+                Layout.preferredHeight: 24
+                value: MixerState.sourceVolume
+                muted: MixerState.sourceMuted
+                onMoved: MixerState.setSourceVolume(value)
 
                 Connections {
                     target: MixerState
@@ -193,33 +151,6 @@ Rectangle {
                         if (!sourceSlider.pressed)
                             sourceSlider.value = MixerState.sourceVolume;
                     }
-                }
-
-                background: Rectangle {
-                    x: sourceSlider.leftPadding
-                    y: sourceSlider.topPadding + sourceSlider.availableHeight / 2 - height / 2
-                    width: sourceSlider.availableWidth
-                    height: 10
-                    radius: 5
-                    color: Theme.surfaceContainerHigh
-
-                    Rectangle {
-                        width: sourceSlider.visualPosition * parent.width
-                        height: parent.height
-                        radius: 5
-                        color: Theme.primary
-                    }
-                }
-
-                handle: Rectangle {
-                    x: sourceSlider.leftPadding + sourceSlider.visualPosition * sourceSlider.availableWidth - width / 2
-                    y: sourceSlider.topPadding + sourceSlider.availableHeight / 2 - height / 2
-                    width: 18
-                    height: 18
-                    radius: 9
-                    color: Theme.text
-                    border.color: Theme.primary
-                    border.width: 2
                 }
             }
 
@@ -364,39 +295,19 @@ Rectangle {
                 font.pixelSize: Theme.fontSize
             }
 
-            Slider {
+            VolumeSlider {
                 id: brightSlider
                 Layout.fillWidth: true
-                from: 0
-                to: 1
+                Layout.preferredHeight: 24
                 value: MixerState.brightnessLevel
                 onMoved: MixerState.setBrightness(value)
 
-                background: Rectangle {
-                    x: brightSlider.leftPadding
-                    y: brightSlider.topPadding + brightSlider.availableHeight / 2 - height / 2
-                    width: brightSlider.availableWidth
-                    height: 10
-                    radius: 5
-                    color: Theme.surfaceContainerHigh
-
-                    Rectangle {
-                        width: brightSlider.visualPosition * parent.width
-                        height: parent.height
-                        radius: 5
-                        color: Theme.primary
+                Connections {
+                    target: MixerState
+                    function onBrightnessLevelChanged() {
+                        if (!brightSlider.pressed)
+                            brightSlider.value = MixerState.brightnessLevel;
                     }
-                }
-
-                handle: Rectangle {
-                    x: brightSlider.leftPadding + brightSlider.visualPosition * brightSlider.availableWidth - width / 2
-                    y: brightSlider.topPadding + brightSlider.availableHeight / 2 - height / 2
-                    width: 18
-                    height: 18
-                    radius: 9
-                    color: Theme.text
-                    border.color: Theme.primary
-                    border.width: 2
                 }
             }
 
