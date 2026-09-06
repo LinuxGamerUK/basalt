@@ -57,8 +57,15 @@ PanelWindow {
             }
             WindowTitle {
                 Layout.fillWidth: true
-                // Never run underneath the center-locked clock.
-                Layout.maximumWidth: root.width / 2 - 160
+                // Stop short of the center-locked clock (clock center =
+                // bar center; half-width ~90 + gap).
+                Layout.maximumWidth: root.width / 2 - 300
+            }
+
+            // Spacer: pins the right cluster to the right edge even when
+            // the title hits its maximum width.
+            Item {
+                Layout.fillWidth: true
             }
 
             // Right: wallpaper picker button, then tray
