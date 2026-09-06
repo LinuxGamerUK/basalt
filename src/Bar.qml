@@ -106,6 +106,8 @@ PanelWindow {
                 Layout.maximumWidth: root.width / 2 - 300
             }
 
+            Cava {}
+
             // Spacer: pins the right cluster to the right edge even when
             // the title hits its maximum width.
             Item {
