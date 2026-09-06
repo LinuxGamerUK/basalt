@@ -13,8 +13,14 @@ version_check = false
 fallback_color = "#4fd8e0"
 
 [templates]
-# ghostty theme file — referenced by ghostty's `theme = ...` key.
-ghostty = { format = "file", input_path = "./ghostty-template", output_path = "~/.config/basalt/themes/ghostty" }
+# ghostty FULL config — house settings + the live palette inline.
+# Mutable: ghostty watches this file and hot-applies changes, so open
+# terminals recolor on wallpaper switches. The HM module no longer
+# generates ~/.config/ghostty/config (the broadcast owns it).
+ghostty = { format = "file", input_path = "./ghostty-config-template", output_path = "~/.config/ghostty/config" }
+
+# ghostty theme file — kept for reference/tools that want the palette alone.
+ghostty-theme = { format = "file", input_path = "./ghostty-template", output_path = "~/.config/basalt/themes/ghostty" }
 
 # fish palette — sourced before every prompt (fish_prompt event handler).
 fish = { format = "file", input_path = "./fish-template", output_path = "~/.config/basalt/themes/palette.fish" }
