@@ -1,7 +1,7 @@
 import QtQuick
-import QtQuick.Layout
+import QtQuick.Layouts
 import Quickshell
-import Quickshell.Waylands
+import Quickshell.Wayland
 
 import "widgets"
 

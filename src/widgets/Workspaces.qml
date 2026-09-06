@@ -1,7 +1,7 @@
 import QtQuick
-import QtQuick.Layout
+import QtQuick.Layouts
 import Quickshell
-import Quickshell.Services.Hyprland
+import Quickshell.Hyprland
 
 // Workspace pills — all persistent workspaces, active one filled.
 // Click to dispatch. (v0: all workspaces across monitors; per-monitor
@@ -10,7 +10,7 @@ RowLayout {
     spacing: 4
 
     Repeater {
-        model: HyprlandData.workspaces
+        model: Hyprland.workspaces
 
         delegate: Rectangle {
             required property var modelData

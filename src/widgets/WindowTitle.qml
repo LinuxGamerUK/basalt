@@ -1,12 +1,12 @@
 import QtQuick
-import Quickshell.Services.Hyprland
+import Quickshell.Hyprland
 
 // Active window title chip. Empty (hidden) when no window is focused.
 Rectangle {
     id: chip
 
     readonly property string title: {
-        const toplevels = HyprlandData.toplevels;
+        const toplevels = Hyprland.toplevels;
         for (let i = 0; i < toplevels.length; i++) {
             if (toplevels[i].active) {
                 return toplevels[i].title;
