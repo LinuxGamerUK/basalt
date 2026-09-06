@@ -1,3 +1,5 @@
+// Native D-Bus menus (tray right-click) require QApplication mode.
+//@ pragma UseQApplication
 import QtQuick
 import Quickshell
 import "widgets"
