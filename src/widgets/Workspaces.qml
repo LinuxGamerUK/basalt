@@ -3,6 +3,8 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
 
+import "root:/"
+
 // Workspace pills — all persistent workspaces, active one filled.
 // Click to dispatch. (v0: all workspaces across monitors; per-monitor
 // filtering arrives with the display phase.)

@@ -1,6 +1,8 @@
 import QtQuick
 import Quickshell
 
+import "root:/"
+
 // Clock chip — date + time, seconds precision for a live sweep.
 Rectangle {
     id: chip

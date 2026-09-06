@@ -3,6 +3,8 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.SystemTray
 
+import "root:/"
+
 // System tray icons (StatusNotifierItems). Render-only for v0 — menus
 // arrive with the notifications phase.
 RowLayout {

@@ -1,6 +1,8 @@
 import QtQuick
 import Quickshell.Hyprland
 
+import "root:/"
+
 // Active window title chip. Empty (hidden) when no window is focused.
 Rectangle {
     id: chip
