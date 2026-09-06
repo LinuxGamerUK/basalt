@@ -33,7 +33,9 @@ PanelWindow {
     }
     aboveWindows: true
     focusable: false
-    color: "transparent"
+    // Explicit alpha-zero — the "transparent" string parses opaque white
+    // in the PanelWindow path (the ClickCatcher lesson, again).
+    color: Qt.rgba(0, 0, 0, 0)
     implicitWidth: 380
     implicitHeight: screenColumn.implicitHeight + 8
 

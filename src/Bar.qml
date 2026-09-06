@@ -39,7 +39,7 @@ PanelWindow {
     // the top gap — symmetric floating pad).
     exclusiveZone: Theme.barHeight + Theme.barMargin * 2
     implicitHeight: Theme.barHeight
-    color: "transparent"
+    color: Qt.rgba(0, 0, 0, 0)
 
     // The pill
     Rectangle {
@@ -167,7 +167,7 @@ PanelWindow {
         visible: root.calendarOpen
         implicitWidth: Math.round(330 * Theme.uiScale)
         implicitHeight: Math.round(390 * Theme.uiScale)
-        color: "transparent"
+        color: Qt.rgba(0, 0, 0, 0)
 
         Calendar {
             anchors.fill: parent
@@ -185,7 +185,7 @@ PanelWindow {
         visible: root.pickerOpen
         implicitWidth: Math.round(660 * Theme.uiScale)
         implicitHeight: Math.round(480 * Theme.uiScale)
-        color: "transparent"
+        color: Qt.rgba(0, 0, 0, 0)
 
         WallpaperPicker {
             anchors.fill: parent
@@ -203,7 +203,7 @@ PanelWindow {
         visible: root.notificationsOpen
         implicitWidth: Math.round(440 * Theme.uiScale)
         implicitHeight: Math.round(520 * Theme.uiScale)
-        color: "transparent"
+        color: Qt.rgba(0, 0, 0, 0)
 
         NotificationHistory {
             anchors.fill: parent
