@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Widgets
 
 import "widgets"
 import "root:/"
@@ -66,12 +67,19 @@ PanelWindow {
                 implicitHeight: Theme.chipHeight
                 radius: height / 2
                 color: root.launcherOpen ? Theme.primary : Theme.surfaceContainerHigh
-                Text {
+                // The real NixOS snowflake — blue when closed, the white
+                // variant on the accent fill while open. Both resolved
+                // through the image://icon provider (the colored SVG also
+                // lives at the local hicolor override for direct refs).
+                IconImage {
                     anchors.centerIn: parent
-                    text: "󰌽"
-                    color: root.launcherOpen ? Theme.textOnPrimary : Theme.primary
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSize
+                    width: 20
+                    height: 20
+                    source: root.launcherOpen
+                        ? "image://icon/nix-snowflake-white"
+                        : "file://" + Quickshell.env("HOME")
+                            + "/.local/share/icons/hicolor/scalable/apps/nix-snowflake.svg"
+                    asynchronous: true
                 }
                 MouseArea {
                     anchors.fill: parent
