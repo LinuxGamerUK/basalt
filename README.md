@@ -206,6 +206,12 @@ Bitten and learned the hard way — they are baked into Basalt's code:
   only while it is needed, on the top layer.
 - `Hyprland.workspaces` / workspace `toplevels` are ObjectModels — iterate
   `.values`, never `.length`/`.count`.
+- In fish, a bare `#` starts a comment — `set -g fish_color_x #aabbcc`
+  sets an **empty** variable. Quote every hex value in generated fish
+  files.
+- Prompt-time theming is the contract: fish/starship re-read their
+  configs on every prompt (live, no restarts); ghostty hot-applies its
+  watched config file to open terminals.
 
 ## Roadmap
 
