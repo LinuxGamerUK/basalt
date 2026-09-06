@@ -61,6 +61,10 @@ Basalt has a short, non-negotiable list of rules:
 - **System tray** — StatusNotifierItems rendered via the icon provider,
   left/middle/right click semantics (activate, secondary-activate, D-Bus
   menus as native popups)
+- **Network** — a bar chip showing the connection state (ethernet/wifi
+  icons, accent when connected), and a panel with the device state, the
+  current SSID, and the live wifi scan with signal strength, security
+  and known-network marks — click a network to connect
 - **Launcher** — SUPER+SPACE or the NixOS-snowflake bar button; live
   filtering over desktop entries, full keyboard navigation, and
   usage-frequency ranking (your regulars float to the top, persisted in
@@ -250,7 +254,12 @@ Bitten and learned the hard way — they are baked into Basalt's code:
 
 ## Version history
 
-- **v0.3.1 — 2026-09-06** (this tag): volume & brightness bar chips with
+- **v0.3.2 — 2026-09-06** (this tag): network widget (bar chip with the
+  connection-state icon, panel with the device state, the current SSID,
+  and the live wifi scan; click-to-connect), network panel wifi scanner
+  enablement, and popup text at the house 14pt standard across the
+  network panel
+- **v0.3.1 — 2026-09-06**: volume & brightness bar chips with
   scroll-to-adjust, click-open mixer and brightness panels, device
   switching, an explicitly-triggered OSD, the CAVA visualizer (pipewire
   input), and popup text at the house 14pt standard
