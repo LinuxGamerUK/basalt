@@ -45,6 +45,7 @@ RowLayout {
     Process {
         id: cavaProc
         command: ["cava", "-p", Quickshell.env("HOME") + "/.config/cava/config"]
+        running: true
         stdout: SplitParser {
             splitMarker: "\n"
 
