@@ -63,7 +63,10 @@ Rectangle {
                 from: 0
                 to: 1
                 value: 0
-                onMoved: MixerState.setSinkVolume(value)
+                onMoved: {
+                    MixerState.setSinkVolume(value);
+                    console.log("sinkSlider MOVED to", value);
+                }
 
                 // Imperative value sync: a reactive value-binding here
                 // yanks the handle back mid-drag on every PipeWire echo
@@ -72,7 +75,6 @@ Rectangle {
                 Component.onCompleted: value = MixerState.sinkVolume
 
                 onPressed: console.log("sinkSlider PRESSED at", value)
-                onMoved: console.log("sinkSlider MOVED to", value)
                 onReleased: console.log("sinkSlider RELEASED at", value)
 
                 Connections {
@@ -170,7 +172,10 @@ Rectangle {
                 from: 0
                 to: 1
                 value: 0
-                onMoved: MixerState.setSourceVolume(value)
+                onMoved: {
+                    MixerState.setSourceVolume(value);
+                    console.log("sourceSlider MOVED to", value);
+                }
 
                 Component.onCompleted: value = MixerState.sourceVolume
 
