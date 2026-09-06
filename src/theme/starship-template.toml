@@ -13,6 +13,7 @@ format = """
 [](fg:{{colors.primary.default.hex}})\
 $os\
 $username\
+$hostname\
 [](bg:{{colors.tertiary.default.hex}} fg:{{colors.primary.default.hex}})\
 $directory\
 [](bg:{{colors.secondary.default.hex}} fg:{{colors.tertiary.default.hex}})\
@@ -81,7 +82,12 @@ Debian = "󰣚"
 show_always = true
 style_user = "bg:{{colors.primary.default.hex}} fg:{{colors.on_primary.default.hex}}"
 style_root = "bg:{{colors.primary.default.hex}} fg:{{colors.on_primary.default.hex}}"
-format = '[ $user]($style)'
+format = '[ $user@]($style)'
+
+[hostname]
+ssh_only = false
+style = "bg:{{colors.primary.default.hex}} fg:{{colors.on_primary.default.hex}}"
+format = '[$hostname ❯ ]($style)'
 
 [directory]
 style = "bg:{{colors.tertiary.default.hex}} fg:{{colors.on_tertiary.default.hex}}"
