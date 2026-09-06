@@ -71,6 +71,10 @@ Rectangle {
                 // only while the user is not holding the handle.
                 Component.onCompleted: value = MixerState.sinkVolume
 
+                onPressed: console.log("sinkSlider PRESSED at", value)
+                onMoved: console.log("sinkSlider MOVED to", value)
+                onReleased: console.log("sinkSlider RELEASED at", value)
+
                 Connections {
                     target: MixerState
                     function onSinkVolumeChanged() {
