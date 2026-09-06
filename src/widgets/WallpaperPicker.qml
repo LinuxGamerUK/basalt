@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 
 import "root:/"
 
@@ -127,6 +128,8 @@ Rectangle {
             model: root.images
 
             delegate: Rectangle {
+                id: pill
+
                 required property string modelData
 
                 width: grid.cellWidth - 8
@@ -139,7 +142,7 @@ Rectangle {
                 Image {
                     anchors.fill: parent
                     anchors.margins: 4
-                    source: encodeURI("file://" + parent.modelData)
+                    source: encodeURI("file://" + pill.modelData)
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
                     sourceSize.width: 312
@@ -148,7 +151,7 @@ Rectangle {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: Theme.applyWallpaper(parent.modelData)
+                    onClicked: Theme.applyWallpaper(pill.modelData)
                 }
             }
 
