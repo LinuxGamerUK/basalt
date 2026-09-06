@@ -33,9 +33,9 @@ Rectangle {
 
     readonly property bool wifiUp: Networking.wifiEnabled
 
-    // The wifi scanner is off by default in QuickShell — enable it as
-    // soon as the panel opens (and keep it on while open) so the
-    // network list populates.
+    // The wifi scanner is off by default in QuickShell — keep it enabled
+    // for the whole lifetime of this panel (re-asserted on every poll:
+    // the setting is per-device and can be reset by NetworkManager).
     onVisibleChanged: {
         if (visible && wifiDevice !== null) {
             wifiDevice.scannerEnabled = true;
@@ -47,6 +47,19 @@ Rectangle {
         target: Networking
         ignoreUnknownSignals: true
         function onItemRegistered() {}
+    }
+
+    // DEBUG: what the panel sees while open.
+    Timer {
+        interval: 1500
+        running: root.visible
+        repeat: true
+        onTriggered: {
+            console.log("netpanel: wifiDevice=" + (wifiDevice !== null)
+                + " scanner=" + (wifiDevice !== null ? wifiDevice.scannerEnabled : "-")
+                + " nets=" + (wifiDevice !== null ? wifiDevice.networks.values.length : "-")
+                + " eth=" + (ethDevice !== null));
+        }
     }
 
     function signalIcon(strength) {
