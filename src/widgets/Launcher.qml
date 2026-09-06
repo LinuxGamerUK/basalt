@@ -30,7 +30,6 @@ PanelWindow {
         right: true
     }
     margins.top: Theme.barHeight + Theme.barMargin * 2 + 4
-    aboveWindows: true
     color: Qt.rgba(0, 0, 0, 0)
     implicitHeight: launcherPill.implicitHeight + 8
 
