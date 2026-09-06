@@ -27,7 +27,10 @@ PanelWindow {
     // surface, so they stay clickable on top.
     aboveWindows: true
     focusable: false
-    color: "transparent"
+    // Explicit alpha-zero — the "transparent" string can parse to an
+    // opaque white in the PanelWindow path. The surface must still map
+    // (for input) but paint nothing.
+    color: Qt.rgba(0, 0, 0, 0)
 
     visible: Ui.anythingOpen
 
