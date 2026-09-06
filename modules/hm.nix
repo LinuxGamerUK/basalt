@@ -26,8 +26,10 @@ in
 
   config = mkIf cfg.enable {
     # Wallpaper stack: the picker drives hyprpaper via `hyprctl hyprpaper`,
-    # and matugen regenerates the palette locally. Both live on PATH.
-    home.packages = [ cfg.package pkgs.hyprpaper pkgs.matugen ];
+    # and matugen regenerates the palette locally. Both live on PATH, as
+    # does quickshell itself (qs/quickshell commands for interactive use —
+    # the bar's unit uses the absolute store path).
+    home.packages = [ cfg.package pkgs.hyprpaper pkgs.matugen cfg.package.passthru.quickshell ];
     home.file.".config/hypr/hyprpaper.conf".text = "";
 
     systemd.user.services.basalt = {
