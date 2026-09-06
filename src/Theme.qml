@@ -82,8 +82,10 @@ Singleton {
         const cfg = Qt.resolvedUrl("theme/matugen.toml").toString().replace(/^file:\/\//, "");
         const broadcast = Qt.resolvedUrl("theme/broadcast.toml").toString().replace(/^file:\/\//, "");
         // Pick the palette once for both the shell and the broadcast.
+        // --prefer saturation: extract the wallpaper's own vibrant accent
+        // (closest-to-fallback anchors every theme to the fallback blue).
         const base = wp !== ""
-            ? ["matugen", "image", wp, "--prefer", "closest-to-fallback"]
+            ? ["matugen", "image", wp, "--prefer", "saturation"]
             : ["matugen", "color", "hex", (settings.sourceColor || sourceColor)];
         if (matugenProc.running) {
             // Busy — re-run when the current generation finishes, so a
@@ -232,6 +234,10 @@ Singleton {
     function applyWallpaper(path) {
         saveSetting("wallpaper", path, () => {
             applyWallpaperFile(path);
+            // Update the in-memory settings BEFORE refreshing — refresh()
+            // derives the palette from settings.wallpaper, and the file
+            // re-read only happens at startup. Stale path = old palette.
+            root.settings.wallpaper = path;
             refresh();
         });
     }
