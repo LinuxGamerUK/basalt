@@ -44,7 +44,8 @@ Singleton {
     // height/chips/fonts scale here.
     property real uiScale: 1.0
     readonly property int barHeight: Math.round(44 * uiScale)
-    readonly property int barMargin: Math.round(8 * uiScale)
+    // House: tight bar — 2px floating pad on every side.
+    readonly property int barMargin: Math.round(2 * uiScale)
     readonly property int barRadius: Math.round(22 * uiScale)
     readonly property int chipRadius: Math.round(14 * uiScale)
     readonly property int chipHeight: Math.round(30 * uiScale)

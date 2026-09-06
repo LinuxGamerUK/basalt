@@ -34,7 +34,9 @@ PanelWindow {
 
     aboveWindows: true
     focusable: false
-    exclusiveZone: Theme.barHeight + Theme.barMargin
+    // Reserve the bar PLUS a 2px breathing gap below it (margin is also
+    // the top gap — symmetric floating pad).
+    exclusiveZone: Theme.barHeight + Theme.barMargin * 2
     implicitHeight: Theme.barHeight
     color: "transparent"
 
@@ -73,7 +75,8 @@ PanelWindow {
                 Layout.fillWidth: true
             }
 
-            // Right: wallpaper picker button, then tray
+            // Right: tray, then the wallpaper picker button rightmost
+            Tray {}
             Rectangle {
                 id: wallBtn
                 implicitWidth: Theme.chipHeight
@@ -93,7 +96,6 @@ PanelWindow {
                     onClicked: Ui.togglePicker(root.screenName)
                 }
             }
-            Tray {}
         }
 
         // Center: the clock is anchored to the pill itself — locked to
@@ -111,7 +113,7 @@ PanelWindow {
         anchor.window: root
         anchor.edges: Edges.Bottom
         anchor.rect.x: Math.max(8, (root.width / 2) - 165)
-        anchor.rect.y: Theme.barHeight + Theme.barMargin
+        anchor.rect.y: Theme.barHeight + Theme.barMargin * 2
         visible: root.calendarOpen
         implicitWidth: Math.round(330 * Theme.uiScale)
         implicitHeight: Math.round(390 * Theme.uiScale)
@@ -129,7 +131,7 @@ PanelWindow {
         anchor.window: root
         anchor.edges: Edges.Bottom
         anchor.rect.x: Math.max(8, root.width - 676)
-        anchor.rect.y: Theme.barHeight + Theme.barMargin
+        anchor.rect.y: Theme.barHeight + Theme.barMargin * 2
         visible: root.pickerOpen
         implicitWidth: Math.round(660 * Theme.uiScale)
         implicitHeight: Math.round(480 * Theme.uiScale)
