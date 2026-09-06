@@ -249,6 +249,11 @@ PanelWindow {
                 }
             }
 
+            // Breathing gap between the system chips and the panel buttons.
+            Item {
+                implicitWidth: Theme.spacing
+            }
+
             Rectangle {
                 id: wallBtn
                 implicitWidth: Theme.chipHeight
