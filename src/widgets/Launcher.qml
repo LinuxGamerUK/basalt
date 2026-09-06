@@ -17,8 +17,12 @@ PanelWindow {
     readonly property string screenName: root.modelData ? root.modelData.name : ""
     visible: Ui.launcherScreen === root.screenName
 
-    // Keyboard capture — the launcher owns input while open.
+    // Keyboard capture — the launcher owns input while open. Overlay
+    // mode: above every window, reserving no space (it must not push
+    // the desktop around).
     focusable: true
+    aboveWindows: true
+    exclusiveZone: -1
 
     anchors {
         top: true

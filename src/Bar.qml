@@ -68,7 +68,7 @@ PanelWindow {
                 color: root.launcherOpen ? Theme.primary : Theme.surfaceContainerHigh
                 Text {
                     anchors.centerIn: parent
-                    text: "󰀄"
+                    text: "󰌽"
                     color: root.launcherOpen ? Theme.textOnPrimary : Theme.primary
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSize
