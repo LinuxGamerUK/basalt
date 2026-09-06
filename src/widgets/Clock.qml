@@ -16,7 +16,7 @@ Rectangle {
     Text {
         anchors.centerIn: parent
         text: Qt.formatDateTime(clock.date, "ddd dd MMM  ·  HH:mm")
-        color: Theme.onSurface
+        color: Theme.text
         font.family: Theme.fontFamily
         font.pixelSize: 12
     }

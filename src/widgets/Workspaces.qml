@@ -26,7 +26,7 @@ RowLayout {
             Text {
                 anchors.centerIn: parent
                 text: modelData.id % 10
-                color: parent.isActive ? Theme.onPrimary : Theme.onSurfaceVariant
+                color: parent.isActive ? Theme.textOnPrimary : Theme.textSecondary
                 font.family: Theme.fontFamily
                 font.pixelSize: 12
                 font.bold: parent.isActive

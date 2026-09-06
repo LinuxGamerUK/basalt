@@ -25,7 +25,7 @@ Rectangle {
         anchors.leftMargin: 14
         anchors.rightMargin: 14
         text: chip.title
-        color: Theme.onSurface
+        color: Theme.text
         font.family: Theme.fontFamily
         font.pixelSize: 12
         elide: Text.ElideRight

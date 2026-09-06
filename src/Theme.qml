@@ -12,15 +12,13 @@ QtObject {
     readonly property color surfaceContainer: "#1f1f28"
     readonly property color surfaceContainerHigh: "#292934"
 
-    // content
-    readonly property color onSurface: "#e3e2e8"
-    readonly property color onSurfaceVariant: "#a9a9b6"
-
-    // accents
-    readonly property color primary: "#4fd8e0"
-    readonly property color onPrimary: "#00363d"
+    // content — NOTE: no `on*` property names (QML reserves onXxx for
+    // signal handlers; onSurface/onPrimary were illegal)
+    readonly property color text: "#e3e2e8"
+    readonly property color textSecondary: "#a9a9b6"
+    readonly property color textOnPrimary: "#00363d"
     readonly property color secondary: "#00d68f"
-    readonly property color error: "#ffb4ab"
+    readonly property color errorColor: "#ffb4ab"
 
     // lines
     readonly property color outline: "#5c5c68"
