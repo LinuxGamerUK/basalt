@@ -49,20 +49,12 @@ in
         # The scripts (basalt scripts/*, python3) resolve tools from PATH —
         # per-user profile carries this module's packages.
         Environment = "PATH=%h/.local/bin:/etc/profiles/per-user/%u/bin:/run/current-system/sw/bin:/usr/bin:/bin";
-        # Startup ordering: at boot Hyprland loads its config before this
-        # service has connected, so the binds' __lua chunks aren't
-        # registered yet and the keybinds are dead. Once QuickShell is up
-        # and the Hyprland env exists, reload — the config re-parses and
-        # every bind re-registers against the live Lua bridge.
-        ExecStartPost = pkgs.writeShellScript "basalt-reload-hyprland" ''
-          export PATH=/run/current-system/sw/bin:$PATH
-          for _ in 1 2 3 4 5 6 7 8 9 10 11 12; do
-            [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ] && break
-            sleep 1
-          done
-          sleep 3
-          ${pkgs.hyprland}/bin/hyprctl reload || true
-        '';
+        # NOTE: never reload Hyprland's config from here (or anywhere).
+        # Hyprland 0.56.2's lua-config keybinds (__lua chunk refs) go INERT
+        # after any config reload — the binds stay registered but stop
+        # firing. The boot-time parse registers them working; they survive
+        # until the first reload. Runtime changes (e.g. theming) must use
+        # hyprctl dispatch hl.config(...) instead.
       };
       Install = {
         WantedBy = [ cfg.systemdTarget ];

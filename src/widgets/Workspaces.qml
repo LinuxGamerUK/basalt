@@ -45,11 +45,6 @@ RowLayout {
     // home; the monitor's active workspace then settles on the layout's
     // first number (e.g. 6 on the external) and the bar normalises.
     function heal() {
-        console.log("heal: strays — " + JSON.stringify(
-            [1,2,3,4,5,6,7,8,9,10].map(n => {
-                const ws = liveWorkspace(n);
-                return ws ? (n + "@" + ws.monitor) : null;
-            }).filter(v => v !== null)));
         for (let n = 1; n <= 10; n++) {
             const ws = liveWorkspace(n);
             if (!ws || !ws.monitor) continue;
@@ -63,7 +58,6 @@ RowLayout {
             // unequal: every workspace looked like a stray on every pass,
             // which was the constant churn / "mind of its own").
             if (home === "" || ws.monitor.name === home) continue;
-            console.log("heal: pulling ws " + n + " from " + ws.monitor.name + " to " + home);
             Hyprland.dispatch('hl.dsp.focus({ workspace = ' + n + ' })');
             Hyprland.dispatch('hl.dsp.workspace.move({ monitor = "' + home + '" })');
             Hyprland.dispatch('hl.dsp.focus({ monitor = "' + root.screenName + '" })');

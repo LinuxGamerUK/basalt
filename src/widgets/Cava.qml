@@ -15,7 +15,6 @@ RowLayout {
     property var bars: []
     // cava's raw ASCII values run 0–1000 at the default sensitivity.
     readonly property real valueMax: 1000
-    property int framesSeen: 0
 
     Layout.preferredWidth: barCount * 7 + 2
     Layout.preferredHeight: 22
@@ -57,11 +56,6 @@ RowLayout {
                     .filter(v => v.length > 0)
                     .map(v => parseInt(v) || 0);
                 if (vals.length >= root.barCount) {
-                    root.framesSeen++;
-                    if (root.framesSeen % 60 === 0) {
-                        console.log("cava frame", root.framesSeen,
-                            "vals:", JSON.stringify(vals));
-                    }
                     root.bars = vals.slice(0, root.barCount);
                 }
             }
