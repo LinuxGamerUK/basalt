@@ -179,40 +179,13 @@ PanelWindow {
             }
 
             // Brightness — the sysfs backlight; scroll ±5%. Level is
-            // 0% (dark) → 100% (bright) straight from sysfs cur/max;
-            // the chip stays blank until the first poll lands.
-            property int brightCur: -1
-            property int brightMax: -1
-
-            Process {
-                id: barBrightRead
-                command: ["bash", "-c",
-                    "echo \"$(cat /sys/class/backlight/*/brightness 2>/dev/null | head -1) $(cat /sys/class/backlight/*/max_brightness 2>/dev/null | head -1)\""]
-                stdout: StdioCollector {
-                    onStreamFinished: {
-                        const parts = this.text.trim().split(/\s+/);
-                        const cur = parseInt(parts[0] || "-1");
-                        const max = parseInt(parts[1] || "1");
-                        if (!isNaN(cur) && cur >= 0 && !isNaN(max) && max > 0) {
-                            root.brightCur = cur;
-                            root.brightMax = max;
-                        }
-                    }
-                }
-            }
-
-            Timer {
-                interval: 250
-                running: true
-                repeat: true
-                onTriggered: barBrightRead.running = true
-            }
+            // 0% (dark) → 100% (bright), read by MixerState's poll; the
+            // chip shows the accent fill until the first poll lands.
 
             Rectangle {
                 id: brightnessChip
 
-                readonly property real level: root.brightCur >= 0
-                    ? root.brightCur / root.brightMax : -1
+                readonly property real level: MixerState.brightnessLevel
 
                 implicitWidth: 46
                 implicitHeight: Theme.chipHeight - 6
@@ -234,18 +207,13 @@ PanelWindow {
                     }
 
                     Text {
-                        text: brightnessChip.level >= 0
+                        text: MixerState.brightnessCur >= 0
                             ? Math.round(brightnessChip.level * 100) + "%"
                             : "…"
                         color: Theme.text
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSize - 3
                     }
-                }
-
-                Process {
-                    id: brightSet
-                    stdout: StdioCollector {}
                 }
 
                 MouseArea {
@@ -258,9 +226,7 @@ PanelWindow {
                         const step = wheel.angleDelta.y > 0 ? 0.05 : -0.05;
                         const next = Math.max(0, Math.min(1,
                             brightnessChip.level + step));
-                        brightSet.command = ["bash", "-c",
-                            "brightnessctl -e4 -n2 set " + Math.round(next * 100) + "%"];
-                        brightSet.running = true;
+                        MixerState.setBrightness(next);
                     }
                 }
             }

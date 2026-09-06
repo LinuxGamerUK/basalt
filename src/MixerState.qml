@@ -38,6 +38,17 @@ Singleton {
         .filter(n => !n.isSink && !n.isStream)
         .map(n => ({ id: n.id, name: n.description || n.name }))
 
+    // Switch the default output/input to a specific device node.
+    function setSinkById(id) {
+        const node = Pipewire.nodes.values.find(n => n.id === id);
+        if (node) Pipewire.preferredDefaultAudioSink = node;
+    }
+
+    function setSourceById(id) {
+        const node = Pipewire.nodes.values.find(n => n.id === id);
+        if (node) Pipewire.preferredDefaultAudioSource = node;
+    }
+
     function setSinkVolume(v) {
         if (root.sinkReady) root.sink.audio.volume = v;
         if (v > 0) setSinkMuted(false);

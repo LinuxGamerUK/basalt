@@ -214,16 +214,36 @@ Rectangle {
             Repeater {
                 model: MixerState.sinks
 
-                delegate: Text {
+                delegate: Rectangle {
                     required property var modelData
 
                     Layout.fillWidth: true
-                    text: "• " + (modelData.name || "unknown")
-                    color: Theme.textSecondary
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSize - 4
-                    elide: Text.ElideRight
-                    maximumLineCount: 1
+                    implicitHeight: devText.implicitHeight + 8
+                    radius: 8
+                    color: MixerState.sink && MixerState.sink.id === modelData.id
+                        ? Theme.primaryContainer ?? Theme.surfaceContainerHigh
+                        : "transparent"
+
+                    Text {
+                        id: devText
+                        anchors.fill: parent
+                        anchors.leftMargin: 8
+                        anchors.rightMargin: 8
+                        verticalAlignment: Text.AlignVCenter
+                        text: "• " + (modelData.name || "unknown")
+                        color: MixerState.sink && MixerState.sink.id === modelData.id
+                            ? Theme.primary : Theme.textSecondary
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSize - 4
+                        elide: Text.ElideRight
+                        maximumLineCount: 1
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: MixerState.setSinkById(modelData.id)
+                    }
                 }
             }
         }
@@ -243,16 +263,36 @@ Rectangle {
             Repeater {
                 model: MixerState.sources
 
-                delegate: Text {
+                delegate: Rectangle {
                     required property var modelData
 
                     Layout.fillWidth: true
-                    text: "• " + (modelData.name || "unknown")
-                    color: Theme.textSecondary
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSize - 4
-                    elide: Text.ElideRight
-                    maximumLineCount: 1
+                    implicitHeight: srcDevText.implicitHeight + 8
+                    radius: 8
+                    color: MixerState.source && MixerState.source.id === modelData.id
+                        ? Theme.surfaceContainerHigh
+                        : "transparent"
+
+                    Text {
+                        id: srcDevText
+                        anchors.fill: parent
+                        anchors.leftMargin: 8
+                        anchors.rightMargin: 8
+                        verticalAlignment: Text.AlignVCenter
+                        text: "• " + (modelData.name || "unknown")
+                        color: MixerState.source && MixerState.source.id === modelData.id
+                            ? Theme.primary : Theme.textSecondary
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSize - 4
+                        elide: Text.ElideRight
+                        maximumLineCount: 1
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: MixerState.setSourceById(modelData.id)
+                    }
                 }
             }
         }
