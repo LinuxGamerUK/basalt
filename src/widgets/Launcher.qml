@@ -34,16 +34,26 @@ PanelWindow {
     implicitHeight: launcherPill.implicitHeight + 8
 
     function filterApps() {
+        const q = searchInput.text.trim().toLowerCase();
         return DesktopEntries.applications.values
             .filter(e => !e.noDisplay)
             .filter(e => {
-                const q = searchInput.text.trim().toLowerCase();
                 if (q === "") return true;
                 return (e.name || "").toLowerCase().includes(q)
                     || (e.comment || "").toLowerCase().includes(q)
                     || (e.keywords || []).some(k => (k || "").toLowerCase().includes(q));
             })
-            .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+            .sort((a, b) => {
+                // Most-used first, then most-recently-used, then name —
+                // usage state survives rebuilds (LauncherState singleton).
+                const ca = LauncherState.countOf(a.id);
+                const cb = LauncherState.countOf(b.id);
+                if (cb !== ca) return cb - ca;
+                const la = LauncherState.lastOf(a.id);
+                const lb = LauncherState.lastOf(b.id);
+                if (lb !== la) return lb - la;
+                return (a.name || "").localeCompare(b.name || "");
+            });
     }
 
     onVisibleChanged: {
@@ -129,6 +139,15 @@ PanelWindow {
                 boundsBehavior: Flickable.StopAtBounds
                 spacing: 2
 
+                // Keyboard navigation follows the selection: keep the
+                // highlighted row in view when ↑/↓ (hover or keys) move it
+                // past the visible window. Essential with no search text,
+                // where the full app list overflows the viewport.
+                onCurrentIndexChanged: {
+                    if (count > 0)
+                        positionViewAtIndex(Math.max(0, Math.min(currentIndex, count - 1)), ListView.Contain);
+                }
+
                 delegate: Rectangle {
                     id: appRow
 
@@ -138,8 +157,11 @@ PanelWindow {
                     width: list.width
                     implicitHeight: appRowLayout.implicitHeight + 10
                     radius: 10
+                    // Selection = the theme accent (Theme.primary —
+                    // matugen regenerates it with the wallpaper, so the
+                    // highlight follows every theme change).
                     color: list.currentIndex === index
-                        ? Theme.primaryContainer
+                        ? Theme.primary
                         : "transparent"
 
                     RowLayout {
@@ -152,7 +174,9 @@ PanelWindow {
                             implicitWidth: 28
                             implicitHeight: 28
                             radius: 8
-                            color: Theme.surfaceContainerHigh
+                            color: list.currentIndex === index
+                                ? Qt.alpha(Theme.textOnPrimary, 0.18)
+                                : Theme.surfaceContainerHigh
 
                             IconImage {
                                 anchors.centerIn: parent
@@ -171,7 +195,7 @@ PanelWindow {
                                 Layout.fillWidth: true
                                 text: appRow.modelData.name || appRow.modelData.id
                                 color: list.currentIndex === index
-                                    ? Theme.onPrimaryContainer : Theme.text
+                                    ? Theme.textOnPrimary : Theme.text
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSize
                                 elide: Text.ElideRight
@@ -183,7 +207,7 @@ PanelWindow {
                                 visible: (appRow.modelData.comment || "") !== ""
                                 text: appRow.modelData.comment
                                 color: list.currentIndex === index
-                                    ? Theme.onPrimaryContainer : Theme.textSecondary
+                                    ? Theme.textOnPrimary : Theme.textSecondary
                                 opacity: 0.8
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSize - 3
@@ -207,6 +231,7 @@ PanelWindow {
 
     function launch(entry) {
         if (!entry) return;
+        LauncherState.bump(entry.id);
         entry.execute();
         Ui.closeAll();
     }
