@@ -121,6 +121,20 @@ workspaces 1–5:
 { "primaryScreen": "eDP-1" }
 ```
 
+## Resolution scaling
+
+The bar spans its screen automatically (anchored edge to edge); its height,
+chips, fonts, and popups derive from a single scale factor so the shell
+expands and contracts on different resolutions or DPIs:
+
+```json
+{ "uiScale": 1.25 }
+```
+
+Defaults to `1.0`. Width is always anchored to the screen; `uiScale` scales
+everything else (bar height, chip sizes, font size, popup dimensions), and
+re-applies live on change.
+
 ## Notes for Hyprland lua-config users
 
 If your Hyprland is configured through `hyprland.lua` (lua mode), a few
