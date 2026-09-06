@@ -60,7 +60,7 @@ disabled = false
 style = "bg:{{colors.primary.default.hex}} fg:{{colors.on_primary.default.hex}}"
 
 [os.symbols]
-Nixos = "󰌽"
+NixOS = "󰌽"
 Linux = "󰌽"
 Windows = ""
 Ubuntu = "󰕈"
