@@ -362,15 +362,23 @@ PanelWindow {
     }
 
     // Calendar dropdown — drops from under the bar center.
-    PopupWindow {
+    PanelWindow {
         id: calendarPopup
-        anchor.window: root
-        anchor.edges: Edges.Bottom
-        anchor.rect.x: Math.max(8, (root.width / 2) - 165)
-        anchor.rect.y: Theme.barHeight + Theme.barMargin * 2
-        visible: root.calendarOpen
+        screen: root.modelData
+        anchors {
+            top: true
+            right: true
+        }
+        aboveWindows: true
+        focusable: false
+        exclusiveZone: -1
+        margins {
+            top: Math.round(Theme.barHeight + Theme.barMargin * 2)
+            right: Math.round((root.width / 2) - 165)
+        }
         implicitWidth: Math.round(330 * Theme.uiScale)
         implicitHeight: Math.round(390 * Theme.uiScale)
+        visible: root.calendarOpen
         color: Qt.rgba(0, 0, 0, 0)
 
         Calendar {
@@ -380,15 +388,23 @@ PanelWindow {
     }
 
     // Wallpaper picker — right-aligned under the bar, near its button.
-    PopupWindow {
+    PanelWindow {
         id: pickerPopup
-        anchor.window: root
-        anchor.edges: Edges.Bottom
-        anchor.rect.x: Math.max(8, root.width - 676)
-        anchor.rect.y: Theme.barHeight + Theme.barMargin * 2
-        visible: root.pickerOpen
+        screen: root.modelData
+        anchors {
+            top: true
+            right: true
+        }
+        aboveWindows: true
+        focusable: false
+        exclusiveZone: -1
+        margins {
+            top: Math.round(Theme.barHeight + Theme.barMargin * 2)
+            right: Math.round(676 * Theme.uiScale)
+        }
         implicitWidth: Math.round(660 * Theme.uiScale)
         implicitHeight: Math.round(480 * Theme.uiScale)
+        visible: root.pickerOpen
         color: Qt.rgba(0, 0, 0, 0)
 
         WallpaperPicker {
@@ -398,15 +414,23 @@ PanelWindow {
     }
 
     // Notification history — right-aligned under the bell.
-    PopupWindow {
+    PanelWindow {
         id: notificationsPopup
-        anchor.window: root
-        anchor.edges: Edges.Bottom
-        anchor.rect.x: Math.max(8, root.width - 456)
-        anchor.rect.y: Theme.barHeight + Theme.barMargin * 2
-        visible: root.notificationsOpen
+        screen: root.modelData
+        anchors {
+            top: true
+            right: true
+        }
+        aboveWindows: true
+        focusable: false
+        exclusiveZone: -1
+        margins {
+            top: Math.round(Theme.barHeight + Theme.barMargin * 2)
+            right: Math.round(16 * Theme.uiScale)
+        }
         implicitWidth: Math.round(440 * Theme.uiScale)
         implicitHeight: Math.round(520 * Theme.uiScale)
+        visible: root.notificationsOpen
         color: Qt.rgba(0, 0, 0, 0)
 
         NotificationHistory {
@@ -417,15 +441,28 @@ PanelWindow {
 
     // Mixer — audio devices + input/output volumes + brightness. Opened
     // on click from either chip, right-aligned under the bar.
-    PopupWindow {
+    // The popup panels are PanelWindows, not PopupWindows: QuickShell's
+    // PopupWindow delivers pointer motion on Hyprland but NOT button
+    // events, which made every slider un-draggable. A PanelWindow is a
+    // normal layer surface — full input — anchored to the same spot
+    // (top-right, just below the floating bar) on this screen.
+    PanelWindow {
         id: mixerPopup
-        anchor.window: root
-        anchor.edges: Edges.Bottom
-        anchor.rect.x: Math.max(8, root.width - 416)
-        anchor.rect.y: Theme.barHeight + Theme.barMargin * 2
-        visible: root.mixerOpen
+        screen: root.modelData
+        anchors {
+            top: true
+            right: true
+        }
+        aboveWindows: true
+        focusable: false
+        exclusiveZone: -1
+        margins {
+            top: Math.round(Theme.barHeight + Theme.barMargin * 2)
+            right: Math.round(8 * Theme.uiScale)
+        }
         implicitWidth: Math.round(400 * Theme.uiScale)
         implicitHeight: Math.round(520 * Theme.uiScale)
+        visible: root.mixerOpen
         color: Qt.rgba(0, 0, 0, 0)
 
         Mixer {
@@ -435,15 +472,23 @@ PanelWindow {
 
     // Network panel — the connection state + wifi networks. The sun
     // chip's sibling for the network chip.
-    PopupWindow {
+    PanelWindow {
         id: networkPopup
-        anchor.window: root
-        anchor.edges: Edges.Bottom
-        anchor.rect.x: Math.max(8, root.width - 416)
-        anchor.rect.y: Theme.barHeight + Theme.barMargin * 2
-        visible: root.networkOpen
+        screen: root.modelData
+        anchors {
+            top: true
+            right: true
+        }
+        aboveWindows: true
+        focusable: false
+        exclusiveZone: -1
+        margins {
+            top: Math.round(Theme.barHeight + Theme.barMargin * 2)
+            right: Math.round(8 * Theme.uiScale)
+        }
         implicitWidth: Math.round(400 * Theme.uiScale)
         implicitHeight: Math.round(440 * Theme.uiScale)
+        visible: root.networkOpen
         color: Qt.rgba(0, 0, 0, 0)
 
         NetworkPanel {
@@ -452,15 +497,23 @@ PanelWindow {
     }
 
     // Brightness panel — the sun chip's own popup.
-    PopupWindow {
+    PanelWindow {
         id: brightnessPopup
-        anchor.window: root
-        anchor.edges: Edges.Bottom
-        anchor.rect.x: Math.max(8, root.width - 386)
-        anchor.rect.y: Theme.barHeight + Theme.barMargin * 2
-        visible: root.brightnessOpen
+        screen: root.modelData
+        anchors {
+            top: true
+            right: true
+        }
+        aboveWindows: true
+        focusable: false
+        exclusiveZone: -1
+        margins {
+            top: Math.round(Theme.barHeight + Theme.barMargin * 2)
+            right: Math.round(28 * Theme.uiScale)
+        }
         implicitWidth: Math.round(370 * Theme.uiScale)
         implicitHeight: Math.round(120 * Theme.uiScale)
+        visible: root.brightnessOpen
         color: Qt.rgba(0, 0, 0, 0)
 
         BrightnessPanel {
