@@ -13,8 +13,8 @@ Singleton {
     id: root
 
     // Volume
-    readonly property PwNodeIface sink: Pipewire.defaultAudioSink
-    readonly property PwNodeIface source: Pipewire.defaultAudioSource
+    readonly property var sink: Pipewire.defaultAudioSink
+    readonly property var source: Pipewire.defaultAudioSource
 
     PwObjectTracker {
         objects: [root.sink, root.source].filter(Boolean)
