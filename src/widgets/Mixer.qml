@@ -15,14 +15,6 @@ Rectangle {
     border.color: Theme.outlineVariant
     border.width: 1
 
-    // Drag debug: report every press landing anywhere on the panel.
-    TapHandler {
-        gesturePolicy: TapHandler.ReleaseWithinBounds
-        onPointChanged: console.log("mixer panel pointer at",
-            point.position.x.toFixed(0) + "," + point.position.y.toFixed(0),
-            point.pressed ? "down" : "up")
-    }
-
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 14
