@@ -15,15 +15,6 @@ Rectangle {
     border.color: Theme.outlineVariant
     border.width: 1
 
-    // DEBUG (non-blocking): report presses without consuming them.
-    MouseArea {
-        anchors.fill: parent
-        acceptedButtons: Qt.NoButton
-        hoverEnabled: true
-        onPositionChanged: (mouse) => console.log("mixer hover at",
-            mouse.x.toFixed(0) + "," + mouse.y.toFixed(0))
-    }
-
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 14
