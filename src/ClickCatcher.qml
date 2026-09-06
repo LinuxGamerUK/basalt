@@ -32,10 +32,25 @@ PanelWindow {
     // (for input) but paint nothing.
     color: Qt.rgba(0, 0, 0, 0)
 
-    visible: Ui.anythingOpen
+    // Always mapped so its layer-stacking position (created before the
+    // bars and popups) never changes — a visible-flip re-map would put
+    // it ABOVE popups and make them unclickable. The input mask gates
+    // it instead: zero-size (all events pass through) until a popup is
+    // open, then the full screen (clicks close the popups).
+    visible: true
+
+    mask: Region {
+        item: null
+        x: 0
+        y: 0
+        width: Ui.anythingOpen ? root.width : 0
+        height: Ui.anythingOpen ? root.height : 0
+    }
 
     MouseArea {
+        id: catcherMouse
         anchors.fill: parent
+        enabled: Ui.anythingOpen
         onClicked: Ui.closeAll()
     }
 }
