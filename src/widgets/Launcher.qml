@@ -182,7 +182,11 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 width: 20
                                 height: 20
-                                source: appRow.modelData.icon
+                                // QuickShell's icon provider: theme lookup
+                                // + SNI pixmaps — the raw name on IconImage
+                                // renders blank for most apps.
+                                source: "image://icon/"
+                                    + (appRow.modelData.icon || "")
                                 asynchronous: true
                             }
                         }
