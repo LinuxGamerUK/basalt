@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import "widgets"
 
 // Basalt shell root — one identical bar per screen; workspaces are
 // filtered per-screen inside each Bar. modelData/screen live on Bar.qml
