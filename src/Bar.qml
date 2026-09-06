@@ -163,7 +163,7 @@ PanelWindow {
                             ? "󰝟"
                             : (volumeChip.level > 0.5 ? "󰕾" : "󰖀")
                         color: volumeChip.muted
-                            ? Theme.error : Theme.primary
+                            ? Theme.errorColor : Theme.primary
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSize
                     }

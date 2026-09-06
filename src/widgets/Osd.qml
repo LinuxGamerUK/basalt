@@ -92,7 +92,7 @@ PanelWindow {
                     ? (root.osdMuted ? "󰝟" : "󰕾")
                     : "󰃟"
                 color: root.osdMode === "volume" && root.osdMuted
-                    ? Theme.error : Theme.primary
+                    ? Theme.errorColor : Theme.primary
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSize + 8
             }
@@ -110,7 +110,7 @@ PanelWindow {
                     width: Math.max(10, parent.width * Math.max(0, Math.min(1, root.osdLevel)))
                     radius: 5
                     color: root.osdMode === "volume" && root.osdMuted
-                        ? Theme.error : Theme.primary
+                        ? Theme.errorColor : Theme.primary
                 }
             }
 
