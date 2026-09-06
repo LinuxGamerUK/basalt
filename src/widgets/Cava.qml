@@ -11,16 +11,16 @@ import "root:/"
 RowLayout {
     id: root
 
-    readonly property int barCount: 12
+    readonly property int barCount: 24
     property var bars: []
     // cava's raw ASCII values run 0–1000 at the default sensitivity.
     readonly property real valueMax: 1000
     property int framesSeen: 0
 
-    Layout.preferredWidth: barCount * 5 + 2
+    Layout.preferredWidth: barCount * 7 + 2
     Layout.preferredHeight: 22
     Layout.alignment: Qt.AlignVCenter
-    spacing: 2
+    spacing: 3
 
     Repeater {
         model: root.barCount
@@ -28,8 +28,8 @@ RowLayout {
         Rectangle {
             required property int index
 
-            width: 3
-            radius: 1
+            width: 4
+            radius: 1.5
             color: Theme.primary
             opacity: 0.85
             anchors.bottom: parent.bottom
