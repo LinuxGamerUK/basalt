@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Layout
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.SystemTray
 
