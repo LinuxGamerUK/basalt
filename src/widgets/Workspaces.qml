@@ -60,7 +60,8 @@ RowLayout {
 
             MouseArea {
                 anchors.fill: parent
-                onClicked: Hyprland.dispatch("workspace " + modelData.id)
+                cursorShape: Qt.PointingHandCursor
+                onClicked: modelData.activate()
             }
         }
     }

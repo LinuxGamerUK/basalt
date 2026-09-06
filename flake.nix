@@ -1,7 +1,11 @@
 {
   description = "Basalt — a Material 3 desktop shell for NixOS (Hyprland + QuickShell). Zero telemetry, zero network, fully declarative.";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  # Pinned to the nixos-unstable-small rev carrying quickshell 0.3.1 —
+  # the first release with the Hyprland IPC API (workspaces/monitors/
+  # toplevels). nixos-unstable still serves 0.3.0, where
+  # Hyprland.workspaces does not exist. Bump when unstable catches up.
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/8f3889588add43913e8bfbbd42a75345c857cf59";
 
   outputs = { self, nixpkgs, ... }:
     let

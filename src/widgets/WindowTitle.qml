@@ -8,13 +8,8 @@ Rectangle {
     id: chip
 
     readonly property string title: {
-        const toplevels = Hyprland.toplevels;
-        for (let i = 0; i < toplevels.length; i++) {
-            if (toplevels[i].active) {
-                return toplevels[i].title;
-            }
-        }
-        return "";
+        const tl = Hyprland.activeToplevel;
+        return tl ? (tl.title ?? "") : "";
     }
 
     visible: title !== ""
