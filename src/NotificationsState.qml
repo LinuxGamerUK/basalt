@@ -57,11 +57,6 @@ Singleton {
         persistenceSupported: true
 
         onNotification: (toast) => {
-            // DEBUG: what actually arrives + the tracked-window state.
-            console.log("toast: id=" + toast.id
-                + " summary=" + (toast.summary || "")
-                + " tracked=" + toast.tracked
-                + " expire=" + toast.expireTimeout);
             // THE CONTRACT (from the qs source): after the notification
             // signal, the server deletes any toast the handler did NOT
             // mark tracked. `toast.tracked = true` keeps it alive and

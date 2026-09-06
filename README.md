@@ -46,7 +46,20 @@ Basalt has a short, non-negotiable list of rules:
   accent ring for workspaces that have windows
 - **Active window title** with a 25-character cap
 - **Center-locked date·time clock** with a Material calendar dropdown
-- **System tray**
+- **Notification center** — Basalt *is* the system notification daemon
+  (org.freedesktop.Notifications via QuickShell): 3-second themed toasts
+  top-right, a bell with an unread badge, and a history panel with
+  clear-all and per-item dismiss. Discord, Brave, anything sending D-Bus
+  notifications lands in it
+- **System tray** — StatusNotifierItems rendered via the icon provider,
+  left/middle/right click semantics (activate, secondary-activate, D-Bus
+  menus as native popups)
+- **Launcher** — SUPER+SPACE or the NixOS-snowflake bar button; live
+  filtering over desktop entries, full keyboard navigation, and
+  usage-frequency ranking (your regulars float to the top, persisted in
+  XDG state)
+- **Hyprland window borders** follow the live palette (active/inactive
+  gradients set at runtime)
 - **Wallpaper picker** — folder selector + thumbnail grid; picking a
   wallpaper sets it through hyprpaper, persists it across reboots, and
   re-themes the entire desktop from its accent colors, live
@@ -209,15 +222,24 @@ Bitten and learned the hard way — they are baked into Basalt's code:
 - In fish, a bare `#` starts a comment — `set -g fish_color_x #aabbcc`
   sets an **empty** variable. Quote every hex value in generated fish
   files.
+- The notification server **deletes any toast the `notification()`
+  handler doesn't mark tracked** — `toast.tracked = true` is the keep-alive
+  contract (and `expireTimeout` is read-only in 0.3.x; enforce timeouts
+  yourself).
+- Native menu popups (`QsMenuAnchor.open()`) require
+  `//@ pragma UseQApplication` in the shell entry file — QGuiApplication
+  mode refuses platform menus.
+- `PanelWindow` windows with `color: "transparent"` render **opaque
+  white** — use explicit `Qt.rgba(0, 0, 0, 0)`.
 - Prompt-time theming is the contract: fish/starship re-read their
   configs on every prompt (live, no restarts); ghostty hot-applies its
   watched config file to open terminals.
 
 ## Roadmap
 
-- Notifications + OSD (volume/brightness)
-- Launcher
-- Lock screen, media popup, settings UI
+- Volume/brightness OSD
+- Lock screen (WlSessionLock + PAM)
+- Media popup (MPRIS)
 
 ## Version history
 
@@ -226,6 +248,20 @@ Bitten and learned the hard way — they are baked into Basalt's code:
   fastfetch), house interaction rules (click-outside closes popups,
   per-screen popups), workspace on-click + has-windows ring, resolution
   scaling, atomic workspace moves
+- **v0.1.0 — 2026-09-06**: Material top bar — per-screen workspaces,
+  window title, clock + calendar, tray
+
+## Version history
+
+- **v0.3.0 — 2026-09-06** (this tag): system tray with D-Bus menus,
+  notification center (Basalt as the D-Bus daemon: toasts, bell,
+  history), launcher with usage-frequency ranking and real NixOS
+  snowflake icons, Hyprland border theming, declarative Qt/GTK theming
+  (dark native menus via qtct + Adwaita-Dark), workspace startup
+  self-heal
+- **v0.2.0 — 2026-09-06**: wallpaper picker + system-wide live theming
+  (shell, ghostty hot-reload, fish, starship powerline, fastfetch),
+  house interaction rules, workspace polish
 - **v0.1.0 — 2026-09-06**: Material top bar — per-screen workspaces,
   window title, clock + calendar, tray
 
