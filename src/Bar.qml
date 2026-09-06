@@ -127,7 +127,7 @@ PanelWindow {
                 Layout.fillWidth: true
             }
 
-            // Right: volume + brightness chips, then tray, then the
+            // Right: tray leftmost, then volume + brightness chips, then the
             // picker and notifications buttons rightmost
 
             // Volume — the default sink; scroll ±5%, click toggles mute.
@@ -247,7 +247,6 @@ PanelWindow {
                 }
             }
 
-            Tray {}
             Rectangle {
                 id: wallBtn
                 implicitWidth: Theme.chipHeight
@@ -344,6 +343,8 @@ PanelWindow {
                     }
                 }
             }
+
+            Tray {}
         }
 
         // Center: the clock is anchored to the pill itself — locked to
