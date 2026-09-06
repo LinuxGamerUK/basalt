@@ -38,19 +38,31 @@ Basalt has a short, non-negotiable list of rules:
 
 ## Features
 
-- **Floating Material 3 top bar** — one identical bar per screen
+- **Floating Material 3 top bar** — one identical bar per screen, 2px
+  floating pad, resolution-aware
 - **Static workspace layout** — 1–5 on your primary screen, 6–10 on any
   external monitor, enforced by the shell (pills materialize where they
-  belong and self-heal if a workspace drifts)
+  belong and self-heal if a workspace drifts); clickable, with a secondary
+  accent ring for workspaces that have windows
 - **Active window title** with a 25-character cap
 - **Center-locked date·time clock** with a Material calendar dropdown
 - **System tray**
+- **Wallpaper picker** — folder selector + thumbnail grid; picking a
+  wallpaper sets it through hyprpaper, persists it across reboots, and
+  re-themes the entire desktop from its accent colors, live
+- **System-wide live theming** — one wallpaper drives one Material You
+  palette into the shell, ghostty (hot-reloaded config), fish (per-prompt
+  palette), starship (a Powerline prompt with the palette injected), and
+  fastfetch — all updated the moment you pick, no restarts
+- **Powerline prompt theme** — starship ships a catppuccin-powerline-style
+  preset (os → user@host → directory → git → languages → time) with the
+  live palette; fish autosuggestions render as ghost text
+- **House interaction rules** — clicking anywhere outside an open popup
+  closes it; popups open only on the screen whose button was clicked, with
+  shared state across screens
 - **Material You theming** — the palette is generated *locally* by
   [matugen](https://github.com/InioX/matugen) from your wallpaper (or any
   source color), with a hand-tuned dark palette as the fallback
-- **Wallpaper picker** — folder selector + thumbnail grid; picking a
-  wallpaper sets it through hyprpaper, persists it across reboots, and
-  re-themes the entire shell from its accent colors, live
 - **JetBrains Mono Nerd Font Propo** typography by default
 
 ## Requirements
@@ -107,19 +119,40 @@ Everything lives in one file, `~/.config/basalt/settings.json`:
 { "sourceColor": "#4fd8e0" }
 ```
 
-Or generate the palette from a wallpaper:
+Or pick a wallpaper directly from the bar's wallpaper button — the palette
+is regenerated from the image and applied everywhere on the fly:
 
 ```json
 { "wallpaper": "/home/you/Pictures/wallpaper.jpg" }
 ```
 
-The palette regenerates on the next shell start — matugen runs locally,
-nothing leaves your machine. You can also pin the screen that carries
+matugen runs locally; nothing leaves your machine. The accent is extracted
+from the wallpaper's most saturated color (`--prefer saturation`), so each
+wallpaper carries its own theme. You can also pin the screen that carries
 workspaces 1–5:
 
 ```json
 { "primaryScreen": "eDP-1" }
 ```
+
+### What gets themed
+
+The same palette fans out to every themed surface through matugen's
+template engine (`src/theme/broadcast.toml`):
+
+| Surface | Mechanism | Latency |
+|---|---|---|
+| Basalt shell | palette applied in-process | instant |
+| ghostty | `~/.config/ghostty/config` rewritten (settings + colors inline); ghostty hot-applies file changes | instant |
+| fish | `~/.config/basalt/themes/palette.fish` sourced before every prompt | next prompt |
+| starship | `~/.config/basalt/themes/starship.toml` re-read every prompt (`STARSHIP_CONFIG` pinned in the fish init) | next prompt |
+| fastfetch | palette include re-read every invocation | next run |
+
+The generated files live under `~/.config/basalt/themes/` (mutable — the
+broadcast owns them; Nix-store-backed configs cannot be written). The
+starship prompt config is the catppuccin-powerline structure with every
+color mapped to Material roles, and fish colors are set through
+fish's own color variables.
 
 ## Resolution scaling
 
@@ -149,12 +182,46 @@ documented:
   workspaces identically and materializes them on click, so the bar stays
   correct regardless.
 - The Hyprland request socket accepts **one request per connection**.
+- Move a window and its destination workspace **atomically**
+  (`window.move` with the workspace following, then pin the workspace
+  home). Moving the window while its workspace is separately in flight
+  desyncs the window's monitor binding — the window renders in one place
+  and interacts in another.
+
+## Quickshell gotchas (for widget authors)
+
+Bitten and learned the hard way — they are baked into Basalt's code:
+
+- `Variants` delegates must be `delegate: Component { YourType {} }` with
+  the component declaring `property var modelData` itself. Redeclaring
+  `required property var modelData` **inline on the delegate** shadows the
+  class property and silently breaks the injection — it has bitten this
+  project three separate times.
+- Each QML file imports its own modules; a root-level `import` does not
+  cascade to widgets in subdirectories.
+- `RowLayout` sizes children from implicit sizes — explicit width/height
+  is stomped to 0.
+- A layer-shell surface **always consumes pointer input** over its whole
+  region (a disabled MouseArea changes nothing). A click-catcher must map
+  only while it is needed, on the top layer.
+- `Hyprland.workspaces` / workspace `toplevels` are ObjectModels — iterate
+  `.values`, never `.length`/`.count`.
 
 ## Roadmap
 
 - Notifications + OSD (volume/brightness)
 - Launcher
 - Lock screen, media popup, settings UI
+
+## Version history
+
+- **v0.2.0 — 2026-09-06** (this tag): wallpaper picker + system-wide live
+  theming (shell, ghostty hot-reload, fish, starship powerline,
+  fastfetch), house interaction rules (click-outside closes popups,
+  per-screen popups), workspace on-click + has-windows ring, resolution
+  scaling, atomic workspace moves
+- **v0.1.0 — 2026-09-06**: Material top bar — per-screen workspaces,
+  window title, clock + calendar, tray
 
 ## License
 
