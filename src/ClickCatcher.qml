@@ -21,15 +21,18 @@ PanelWindow {
         left: true
         right: true
     }
-    aboveWindows: false
+    // Top layer (above toplevels) — a bare-desktop catcher is useless;
+    // app windows would stack above it and swallow the clicks. The bars
+    // and popups also use aboveWindows, and the popups map after this
+    // surface, so they stay clickable on top.
+    aboveWindows: true
     focusable: false
     color: "transparent"
 
+    visible: Ui.anythingOpen
+
     MouseArea {
         anchors.fill: parent
-        // Only active while something is open; otherwise fully inert.
-        enabled: Ui.anythingOpen
-        z: 1
         onClicked: Ui.closeAll()
     }
 }
