@@ -7,6 +7,9 @@
 # NOTE: hyprpaper >= 0.8 dropped the old `preload` hyprctl command — the
 # wallpaper command loads the image directly from the path. Do NOT
 # reintroduce preload.
+#
+# Monitor names are resolved dynamically from `hyprctl monitors -j` —
+# never hardcode output names (eDP-1/DP-1 are machine-specific).
 set -euo pipefail
 
 img="${1:?image path required}"
@@ -26,9 +29,19 @@ if ! pgrep -x hyprpaper >/dev/null 2>&1; then
     done
 fi
 
-hyprctl hyprpaper wallpaper ",$img" >/dev/null \
-    || hyprctl hyprpaper wallpaper "eDP-1,$img" >/dev/null 2>&1 \
-    || hyprctl hyprpaper wallpaper "DP-1,$img" >/dev/null 2>&1
+# Apply to every monitor currently present — dynamic, machine-agnostic.
+monitors="$(hyprctl monitors -j 2>/dev/null | python3 -c 'import json,sys; print("\n".join(m["name"] for m in json.load(sys.stdin)))')"
+if [ -z "$monitors" ]; then
+    # Fallback: the comma-global form applies to all monitors.
+    hyprctl hyprpaper wallpaper ",$img" >/dev/null 2>&1 || true
+else
+    while IFS= read -r mon; do
+        hyprctl hyprpaper wallpaper "$mon,$img" >/dev/null 2>&1 || true
+    done <<EOF
+$monitors
+EOF
+fi
+
 if [ -n "$prev" ] && [ "$prev" != "$img" ]; then
     hyprctl hyprpaper unload "$prev" >/dev/null 2>&1 || true
 fi

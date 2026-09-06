@@ -16,9 +16,10 @@ PanelWindow {
     screen: modelData
 
     // Popup state lives on the shared Ui singleton (click-catcher, house
-    // close-on-outside rule).
-    readonly property bool calendarOpen: Ui.calendarOpen
-    readonly property bool pickerOpen: Ui.pickerOpen
+    // rule: open only on the screen that was clicked).
+    readonly property bool calendarOpen: Ui.calendarScreen === root.screenName
+    readonly property bool pickerOpen: Ui.pickerScreen === root.screenName
+    readonly property string screenName: root.modelData ? root.modelData.name : ""
 
     anchors {
         top: true
@@ -89,7 +90,7 @@ PanelWindow {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: Ui.pickerOpen = !Ui.pickerOpen
+                    onClicked: Ui.togglePicker(root.screenName)
                 }
             }
             Tray {}
@@ -100,7 +101,7 @@ PanelWindow {
         Clock {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
-            onClicked: Ui.calendarOpen = !Ui.calendarOpen
+            onClicked: Ui.toggleCalendar(root.screenName)
         }
     }
 
@@ -118,7 +119,7 @@ PanelWindow {
 
         Calendar {
             anchors.fill: parent
-            onCloseRequested: Ui.calendarOpen = false
+            onCloseRequested: Ui.calendarScreen = ""
         }
     }
 
@@ -136,7 +137,7 @@ PanelWindow {
 
         WallpaperPicker {
             anchors.fill: parent
-            onCloseRequested: Ui.pickerOpen = false
+            onCloseRequested: Ui.pickerScreen = ""
         }
     }
 }

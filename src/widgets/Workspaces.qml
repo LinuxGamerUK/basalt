@@ -64,7 +64,7 @@ RowLayout {
             //   has windows  → secondary border (content present elsewhere)
             //   empty/missing→ plain outline
             color: isActive ? Theme.primary : Theme.surfaceContainerHigh
-            border.width: (!isActive && hasWindows) ? 2 : 1
+            border.width: !isActive && hasWindows ? 4 : 1
             border.color: isActive
                 ? Theme.primary
                 : (hasWindows ? Theme.secondary : Theme.outline)

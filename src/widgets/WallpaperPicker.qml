@@ -1,13 +1,14 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Io
 
 import "root:/"
 
 // Material wallpaper picker: folder chip (editable), refresh, thumbnail
 // grid. Click a wallpaper → persisted to settings.json, applied through
 // hyprpaper, and the whole shell re-themes from its accent colors.
+// Folder + image list live in PickerState (shared — identical on every
+// screen that shows this popup).
 Rectangle {
     id: root
 
@@ -18,30 +19,9 @@ Rectangle {
     border.color: Theme.outlineVariant
     border.width: 1
 
-    property string folder: Theme.settings.wallpaperDir
-        || (Quickshell.env("HOME") + "/Pictures/Wallpapers")
-    property var images: []
-
-    function refresh() {
-        if (listProc.running) return;
-        listProc.running = true;
-    }
-
-    Component.onCompleted: refresh()
-
-    Process {
-        id: listProc
-        // Proper argv quoting — the folder never touches a shell string.
-        command: ["bash", "-c",
-            'find "$1" -maxdepth 1 -type f \\( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.webp" -o -iname "*.gif" -o -iname "*.avif" -o -iname "*.bmp" \\) -print | sort',
-            "basalt-picker", root.folder]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const t = this.text.trim();
-                root.images = t ? t.split("\n") : [];
-            }
-        }
-    }
+    // Shared instance state (house rule: popup identical on every screen)
+    readonly property string folder: PickerState.folder
+    readonly property var images: PickerState.images
 
     ColumnLayout {
         anchors.fill: parent
@@ -71,8 +51,9 @@ Rectangle {
                     verticalAlignment: TextInput.AlignVCenter
                     selectByMouse: true
                     onAccepted: {
-                        root.folder = pathInput.text;
-                        root.refresh();
+                        PickerState.setFolder(text);
+                        // Remember the browsed folder for next time.
+                        Theme.saveSetting("wallpaperDir", text);
                     }
                 }
             }
@@ -91,8 +72,7 @@ Rectangle {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        root.folder = pathInput.text;
-                        root.refresh();
+                        PickerState.setFolder(pathInput.text);
                     }
                 }
             }
