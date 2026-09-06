@@ -22,10 +22,7 @@ ShellRoot {
         model: Quickshell.screens
 
         delegate: Component {
-            Bar {
-                required property var modelData
-                screen: modelData
-            }
+            Bar {}
         }
     }
 }
