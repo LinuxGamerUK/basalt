@@ -1,8 +1,15 @@
 import QtQuick
 import Quickshell
 
-// Basalt shell root. One Bar per screen for now; per-monitor variants
-// arrive with the later phases.
+// Basalt shell root — one identical bar per screen; workspaces are
+// filtered per-screen inside each Bar.
 ShellRoot {
-    Bar {}
+    Variants {
+        model: Quickshell.screens
+
+        delegate: Bar {
+            required property var modelData
+            screen: modelData
+        }
+    }
 }

@@ -1,0 +1,12 @@
+# Basalt matugen config — generates the Material You palette JSON.
+# Input template emits the palette to stdout (Theme.qml parses it);
+# nothing is written to disk.
+[config]
+# Charter: no update checks. Ever.
+version_check = false
+
+# Which color to choose if no good color was found from a wallpaper.
+fallback_color = "#4fd8e0"
+
+[templates]
+palette = { format = "json", input_path = "./palette-template.json", output_path = "/dev/stdout" }

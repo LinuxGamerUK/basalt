@@ -3,9 +3,13 @@ import Quickshell
 
 import "root:/"
 
-// Clock chip — date + time, seconds precision for a live sweep.
+// Clock chip — date and time, dot-separated, centered in the bar.
+// Clicking it drops the calendar.
 Rectangle {
     id: chip
+
+    signal clicked()
+
     height: Theme.chipHeight
     radius: Theme.chipRadius
     color: Theme.surfaceContainerHigh
@@ -21,5 +25,11 @@ Rectangle {
         color: Theme.text
         font.family: Theme.fontFamily
         font.pixelSize: 12
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
+        onClicked: chip.clicked()
     }
 }

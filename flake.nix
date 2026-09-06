@@ -21,7 +21,7 @@
         {
           # Dev loop: nix develop -c qs -p src
           default = pkgs.mkShell {
-            packages = [ pkgs.quickshell ];
+            packages = [ pkgs.quickshell pkgs.matugen ];
           };
         });
 

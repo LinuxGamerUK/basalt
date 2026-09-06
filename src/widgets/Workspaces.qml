@@ -9,10 +9,28 @@ import "root:/"
 // Click to dispatch. (v0: all workspaces across monitors; per-monitor
 // filtering arrives with the display phase.)
 RowLayout {
+    id: root
+
+    property string screenName: ""
+
+    // Only the workspaces that live on THIS screen (house layout:
+    // 1–5 on eDP-1, 6–10 on the desk monitor — see hyprland.lua).
+    readonly property var screenWorkspaces: {
+        const out = [];
+        const ws = Hyprland.workspaces;
+        for (let i = 0; i < ws.length; i++) {
+            const w = ws[i];
+            if (w.monitor && w.monitor.name === root.screenName) {
+                out.push(w);
+            }
+        }
+        return out;
+    }
+
     spacing: 4
 
     Repeater {
-        model: Hyprland.workspaces
+        model: screenWorkspaces
 
         delegate: Rectangle {
             required property var modelData

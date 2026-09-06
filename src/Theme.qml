@@ -1,33 +1,43 @@
 pragma Singleton
 
 import QtQuick
+import Quickshell
+import Quickshell.Io
 
-// Material 3 dark tonal palette — static for v0.1.
-// Seed: the house Hyprland border gradient (cyan #33ccff → green #00ff99).
-// matugen-driven dynamic color lands in phase C4 and swaps these values.
+// Material 3 dark tonal palette.
+//
+// Two sources, in order:
+//   1. matugen — Material You palette generated from the wallpaper
+//      (settings.json "wallpaper") or a source color ("sourceColor",
+//      default: the house cyan). Computed locally; no network.
+//   2. the static fallbacks below — used whenever matugen fails or no
+//      settings exist yet.
+//
+// NOTE: no `on*` property names — QML reserves onXxx for signal handlers.
 QtObject {
-    // tonal surfaces (dark scheme)
-    readonly property color surfaceDim: "#121218"
-    readonly property color surface: "#1a1a22"
-    readonly property color surfaceContainer: "#1f1f28"
-    readonly property color surfaceContainerHigh: "#292934"
+    id: root
 
-    // content — NOTE: no `on*` property names (QML reserves onXxx for
-    // signal handlers; onSurface/onPrimary were illegal)
-    readonly property color text: "#e3e2e8"
-    readonly property color textSecondary: "#a9a9b6"
-    readonly property color textOnPrimary: "#00363d"
+    // ---- tonal surfaces (dark scheme) ----
+    property color surfaceDim: "#121218"
+    property color surface: "#1a1a22"
+    property color surfaceContainer: "#1f1f28"
+    property color surfaceContainerHigh: "#292934"
 
-    // accents
-    readonly property color primary: "#4fd8e0"
-    readonly property color secondary: "#00d68f"
-    readonly property color errorColor: "#ffb4ab"
+    // ---- content ----
+    property color text: "#e3e2e8"
+    property color textSecondary: "#a9a9b6"
+    property color textOnPrimary: "#00363d"
 
-    // lines
-    readonly property color outline: "#5c5c68"
-    readonly property color outlineVariant: "#2f2f3a"
+    // ---- accents ----
+    property color primary: "#4fd8e0"
+    property color secondary: "#00d68f"
+    property color errorColor: "#ffb4ab"
 
-    // geometry
+    // ---- lines ----
+    property color outline: "#5c5c68"
+    property color outlineVariant: "#2f2f3a"
+
+    // ---- geometry ----
     readonly property int barHeight: 44
     readonly property int barMargin: 8
     readonly property int barRadius: 22
@@ -36,6 +46,67 @@ QtObject {
     readonly property int padding: 18
     readonly property int spacing: 10
 
-    // typography
+    // ---- typography ----
     readonly property string fontFamily: "JetBrainsMono Nerd Font"
+
+    // ---- theming source ----
+    property string sourceColor: "#4fd8e0"
+    property var settings: ({})
+
+    function applyPalette(p) {
+        if (!p) return;
+        if (p.primary) primary = p.primary;
+        if (p.textOnPrimary) textOnPrimary = p.textOnPrimary;
+        if (p.secondary) secondary = p.secondary;
+        if (p.text) text = p.text;
+        if (p.textSecondary) textSecondary = p.textSecondary;
+        if (p.surfaceDim) surfaceDim = p.surfaceDim;
+        if (p.surface) surface = p.surface;
+        if (p.surfaceContainer) surfaceContainer = p.surfaceContainer;
+        if (p.surfaceContainerHigh) surfaceContainerHigh = p.surfaceContainerHigh;
+        if (p.outline) outline = p.outline;
+        if (p.outlineVariant) outlineVariant = p.outlineVariant;
+        if (p.errorColor) errorColor = p.errorColor;
+    }
+
+    function refresh() {
+        const wp = settings.wallpaper || "";
+        const cfg = Qt.resolvedUrl("theme/matugen.toml").toString().replace(/^file:\/\//, "");
+        if (wp !== "") {
+            matugenProc.command = ["matugen", "image", wp, "-c", cfg];
+        } else {
+            matugenProc.command = ["matugen", "color", "hex", (settings.sourceColor || sourceColor), "-c", cfg];
+        }
+        matugenProc.running = true;
+    }
+
+    Process {
+        id: settingsProc
+        command: ["bash", "-c", "cat \"$HOME/.config/basalt/settings.json\" 2>/dev/null || echo '{}'"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    root.settings = JSON.parse(this.text);
+                } catch (e) {
+                    root.settings = {};
+                }
+                root.refresh();
+            }
+        }
+    }
+
+    Process {
+        id: matugenProc
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    root.applyPalette(JSON.parse(this.text));
+                } catch (e) {
+                    // keep the static fallback palette
+                }
+            }
+        }
+    }
+
+    Component.onCompleted: settingsProc.running = true
 }
