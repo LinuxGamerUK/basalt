@@ -5,37 +5,50 @@ import Quickshell.Hyprland
 
 import "root:/"
 
-// Workspace pills — all persistent workspaces, active one filled.
-// Click to dispatch. (v0: all workspaces across monitors; per-monitor
-// filtering arrives with the display phase.)
+// Static house workspace layout: the primary screen carries 1–5, every
+// other screen carries 6–10 — regardless of where Hyprland's live state
+// has drifted (workspaces migrate when accessed from another monitor).
+// A pill for a workspace that doesn't currently exist on this monitor
+// renders dim; clicking it creates/pulls the workspace here.
 RowLayout {
     id: root
 
     property string screenName: ""
 
-    // Only the workspaces that live on THIS screen (house layout:
-    // 1–5 on eDP-1, 6–10 on the desk monitor — see hyprland.lua).
-    // Hyprland.workspaces is an ObjectModel — iterate .values.
-    readonly property var screenWorkspaces: {
+    readonly property bool isPrimary: root.screenName === (Theme.settings.primaryScreen || "eDP-1")
+
+    readonly property var workspaceNumbers: {
         const out = [];
-        const ws = Hyprland.workspaces.values;
-        for (let i = 0; i < ws.length; i++) {
-            const w = ws[i];
-            if (w.monitor && w.monitor.name === root.screenName) {
-                out.push(w);
-            }
+        const first = root.isPrimary ? 1 : 6;
+        const last = root.isPrimary ? 5 : 10;
+        for (let n = first; n <= last; n++) {
+            out.push(n);
         }
         return out;
+    }
+
+    // Live workspace object for a number, if it currently exists anywhere.
+    function liveWorkspace(n) {
+        const ws = Hyprland.workspaces.values;
+        for (let i = 0; i < ws.length; i++) {
+            if (ws[i].id === n) {
+                return ws[i];
+            }
+        }
+        return null;
     }
 
     spacing: 4
 
     Repeater {
-        model: screenWorkspaces
+        model: root.workspaceNumbers
 
         delegate: Rectangle {
-            required property var modelData
-            readonly property bool isActive: modelData.active ?? false
+            id: pill
+
+            required property int modelData
+            readonly property var live: root.liveWorkspace(modelData)
+            readonly property bool isActive: live ? (live.active ?? false) : false
 
             // implicitWidth/Height: RowLayout sizes children from implicit
             // sizes — explicit width/height gets stomped to 0.
@@ -44,12 +57,14 @@ RowLayout {
             radius: height / 2
             color: isActive ? Theme.primary : Theme.surfaceContainerHigh
             border.width: 1
-            border.color: isActive ? Theme.primary : Theme.outline
+            border.color: isActive ? Theme.primary
+                         : (live ? Theme.outline : Theme.outlineVariant)
 
             Text {
                 anchors.centerIn: parent
-                text: modelData.id % 10
-                color: parent.isActive ? Theme.textOnPrimary : Theme.textSecondary
+                text: parent.modelData % 10
+                color: parent.isActive ? Theme.textOnPrimary
+                     : (parent.live ? Theme.textSecondary : Theme.outline)
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSize
                 font.bold: parent.isActive
@@ -58,7 +73,9 @@ RowLayout {
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: modelData.activate()
+                // Creates the workspace here if missing; pulls it back to
+                // this screen if it drifted.
+                onClicked: Hyprland.dispatch("workspace " + parent.modelData)
             }
         }
     }
