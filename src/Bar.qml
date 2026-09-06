@@ -9,7 +9,9 @@ import "widgets"
 PanelWindow {
     id: root
 
-    required property var modelData
+    // Set by Variants (one Bar per screen); non-required so a missing
+    // injection degrades gracefully instead of aborting creation.
+    property var modelData
     screen: modelData
 
     property bool calendarOpen: false
@@ -49,7 +51,8 @@ PanelWindow {
 
             // Left: this screen's workspaces, then the window title chip
             Workspaces {
-                screenName: root.modelData.name
+                // null-guard: modelData lands shortly after creation
+                screenName: root.modelData ? root.modelData.name : ""
             }
             WindowTitle {}
 

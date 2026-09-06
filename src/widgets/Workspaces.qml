@@ -48,7 +48,7 @@ RowLayout {
                 text: modelData.id % 10
                 color: parent.isActive ? Theme.textOnPrimary : Theme.textSecondary
                 font.family: Theme.fontFamily
-                font.pixelSize: 12
+                font.pixelSize: Theme.fontSize
                 font.bold: parent.isActive
             }
 

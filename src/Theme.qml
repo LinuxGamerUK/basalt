@@ -47,7 +47,9 @@ Singleton {
     readonly property int spacing: 10
 
     // ---- typography ----
-    readonly property string fontFamily: "JetBrainsMono Nerd Font"
+    // House rule: JetBrains Mono Nerd Font Propo, size 14 — everywhere.
+    readonly property string fontFamily: "JetBrainsMono Nerd Font Propo"
+    readonly property int fontSize: 14
 
     // ---- theming source ----
     property string sourceColor: "#4fd8e0"

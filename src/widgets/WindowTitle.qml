@@ -29,7 +29,7 @@ Rectangle {
         text: chip.title
         color: Theme.text
         font.family: Theme.fontFamily
-        font.pixelSize: 12
+        font.pixelSize: Theme.fontSize
         elide: Text.ElideRight
         verticalAlignment: Text.AlignVCenter
     }

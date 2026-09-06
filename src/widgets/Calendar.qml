@@ -42,7 +42,7 @@ Rectangle {
                 text: root.monthLabel(root.viewYear, root.viewMonth)
                 color: Theme.text
                 font.family: Theme.fontFamily
-                font.pixelSize: 13
+                font.pixelSize: Theme.fontSize
                 font.bold: true
             }
 
@@ -54,7 +54,7 @@ Rectangle {
                     text: "‹"
                     color: Theme.text
                     font.family: Theme.fontFamily
-                    font.pixelSize: 14
+                    font.pixelSize: Theme.fontSize
                 }
                 MouseArea {
                     anchors.fill: parent
@@ -76,7 +76,7 @@ Rectangle {
                     text: "›"
                     color: Theme.text
                     font.family: Theme.fontFamily
-                    font.pixelSize: 14
+                    font.pixelSize: Theme.fontSize
                 }
                 MouseArea {
                     anchors.fill: parent
@@ -103,7 +103,7 @@ Rectangle {
                     text: modelData
                     color: Theme.textSecondary
                     font.family: Theme.fontFamily
-                    font.pixelSize: 11
+                    font.pixelSize: Theme.fontSize
                 }
             }
         }
@@ -147,7 +147,7 @@ Rectangle {
                         color: parent.isToday ? Theme.textOnPrimary
                              : (parent.valid ? Theme.text : Theme.outline)
                         font.family: Theme.fontFamily
-                        font.pixelSize: 12
+                        font.pixelSize: Theme.fontSize
                         font.bold: parent.isToday
                     }
 

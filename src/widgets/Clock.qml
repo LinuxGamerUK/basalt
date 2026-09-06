@@ -24,7 +24,7 @@ Rectangle {
         text: Qt.formatDateTime(clock.date, "ddd dd MMM  ·  HH:mm")
         color: Theme.text
         font.family: Theme.fontFamily
-        font.pixelSize: 12
+        font.pixelSize: Theme.fontSize
     }
 
     MouseArea {
