@@ -57,6 +57,13 @@ Singleton {
         persistenceSupported: true
 
         onNotification: (toast) => {
+            // DEBUG: what actually arrives + the tracked-window state.
+            console.log("toast: id=" + toast.id
+                + " summary=" + (toast.summary || "")
+                + " tracked=" + toast.tracked
+                + " expire=" + toast.expireTimeout);
+            Qt.callLater(() => console.log("tracked count:",
+                server.trackedNotifications.values.length));
             // House rule: toasts live 3 seconds. NOTE: expireTimeout is
             // READ-ONLY in quickshell 0.3.1 — assigning it throws and
             // would abort this handler (the history push below never

@@ -38,6 +38,37 @@ RowLayout {
         return null;
     }
 
+    // Startup self-heal: Hyprland gives the second monitor its own default
+    // workspace (id 2) before the static-layout rules create 6–10, so at
+    // login the bar shows BOTH ws 1 and ws 2 as "active on their monitor".
+    // Any workspace parked on the wrong monitor gets focused and pulled
+    // home; the monitor's active workspace then settles on the layout's
+    // first number (e.g. 6 on the external) and the bar normalises.
+    function heal() {
+        for (let n = 1; n <= 10; n++) {
+            const ws = liveWorkspace(n);
+            if (!ws || !ws.monitor) continue;
+            const home = ws.id <= 5
+                ? (Theme.settings.primaryScreen || "eDP-1")
+                : Quickshell.screens
+                    .filter(s => s.name !== (Theme.settings.primaryScreen || "eDP-1"))
+                    .map(s => s.name)[0] || "";
+            if (home === "" || ws.monitor === home) continue;
+            Hyprland.dispatch('hl.dsp.focus({ workspace = ' + n + ' })');
+            Hyprland.dispatch('hl.dsp.workspace.move({ monitor = "' + home + '" })');
+            Hyprland.dispatch('hl.dsp.focus({ monitor = "' + root.screenName + '" })');
+        }
+    }
+
+    // The Hyprland IPC + the workspaces model need a beat after shell
+    // start before the state is complete.
+    Timer {
+        interval: 2000
+        running: root.screenName !== ""
+        repeat: false
+        onTriggered: root.heal()
+    }
+
     spacing: 4
 
     Repeater {
