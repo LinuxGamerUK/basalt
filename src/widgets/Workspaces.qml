@@ -50,8 +50,9 @@ RowLayout {
             readonly property var live: root.liveWorkspace(modelData)
             readonly property bool isActive: live ? (live.active ?? false) : false
             // Has windows on it right now (but not active here) → the
-            // secondary accent state.
-            readonly property bool hasWindows: live ? ((live.toplevels.count ?? 0) > 0) : false
+            // secondary accent state. toplevels is an ObjectModel — count
+            // via .values (a QObjectList), not .count.
+            readonly property bool hasWindows: live ? ((live.toplevels && live.toplevels.values.length) > 0) : false
 
             // implicitWidth/Height: RowLayout sizes children from implicit
             // sizes — explicit width/height gets stomped to 0.
