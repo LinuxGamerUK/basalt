@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
+import Quickshell.Services.Pipewire
 
 import "widgets"
 import "root:/"
@@ -108,7 +109,157 @@ PanelWindow {
                 Layout.fillWidth: true
             }
 
-            // Right: tray, then the picker and notifications buttons rightmost
+            // Right: volume + brightness chips, then tray, then the
+            // picker and notifications buttons rightmost
+
+            // Volume — the default sink; scroll ±5%, click toggles mute.
+            PwObjectTracker {
+                objects: Pipewire.defaultAudioSink
+                    ? [Pipewire.defaultAudioSink]
+                    : []
+            }
+
+            Rectangle {
+                id: volumeChip
+
+                readonly property var audio: Pipewire.defaultAudioSink?.audio ?? null
+                readonly property real level: audio ? audio.volume : 0
+                readonly property bool muted: audio ? audio.muted : false
+
+                implicitWidth: 46
+                implicitHeight: Theme.chipHeight - 6
+                radius: height / 2
+                color: mouse.containsMouse
+                    ? Theme.surfaceContainerHigh : "transparent"
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 8
+                    anchors.rightMargin: 8
+                    spacing: 5
+
+                    Text {
+                        text: volumeChip.muted
+                            ? "󰝟"
+                            : (volumeChip.level > 0.5 ? "󰕾" : "󰖀")
+                        color: volumeChip.muted
+                            ? Theme.error : Theme.primary
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSize
+                    }
+
+                    Text {
+                        text: Math.round(volumeChip.level * 100) + "%"
+                        color: volumeChip.muted
+                            ? Theme.textSecondary : Theme.text
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSize - 3
+                    }
+                }
+
+                MouseArea {
+                    id: mouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    acceptedButtons: Qt.LeftButton
+                    onClicked: if (volumeChip.audio) {
+                        volumeChip.audio.muted = !volumeChip.audio.muted;
+                    }
+                    onWheel: (wheel) => {
+                        if (volumeChip.audio) {
+                            const step = wheel.angleDelta.y > 0 ? 0.05 : -0.05;
+                            const next = Math.max(0, Math.min(1,
+                                volumeChip.level + step));
+                            volumeChip.audio.volume = next;
+                            volumeChip.audio.muted = false;
+                        }
+                    }
+                }
+            }
+
+            // Brightness — the sysfs backlight; scroll ±5%.
+            property int brightCur: 0
+            property int brightMax: 1
+
+            Process {
+                id: barBrightRead
+                command: ["bash", "-c",
+                    "echo \"$(cat /sys/class/backlight/*/brightness 2>/dev/null | head -1) $(cat /sys/class/backlight/*/max_brightness 2>/dev/null | head -1)\""]
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        const parts = this.text.trim().split(/\s+/);
+                        const cur = parseInt(parts[0] || "0");
+                        const max = parseInt(parts[1] || "1");
+                        if (!isNaN(cur) && !isNaN(max) && max > 0) {
+                            root.brightCur = cur;
+                            root.brightMax = max;
+                        }
+                    }
+                }
+            }
+
+            Timer {
+                interval: 250
+                running: true
+                repeat: true
+                onTriggered: barBrightRead.running = true
+            }
+
+            Rectangle {
+                id: brightnessChip
+
+                readonly property real level: root.brightMax > 0
+                    ? root.brightCur / root.brightMax : 0
+
+                implicitWidth: 46
+                implicitHeight: Theme.chipHeight - 6
+                radius: height / 2
+                color: brightMouse.containsMouse
+                    ? Theme.surfaceContainerHigh : "transparent"
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 8
+                    anchors.rightMargin: 8
+                    spacing: 5
+
+                    Text {
+                        text: "󰃟"
+                        color: Theme.primary
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSize
+                    }
+
+                    Text {
+                        text: Math.round(brightnessChip.level * 100) + "%"
+                        color: Theme.text
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSize - 3
+                    }
+                }
+
+                Process {
+                    id: brightSet
+                    stdout: StdioCollector {}
+                }
+
+                MouseArea {
+                    id: brightMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onWheel: (wheel) => {
+                        const step = wheel.angleDelta.y > 0 ? 0.05 : -0.05;
+                        const next = Math.max(0, Math.min(1,
+                            brightnessChip.level + step));
+                        brightSet.command = ["bash", "-c",
+                            "brightnessctl -e4 -n2 set " + Math.round(next * 100) + "%"];
+                        brightSet.running = true;
+                    }
+                }
+            }
+
             Tray {}
             Rectangle {
                 id: wallBtn
