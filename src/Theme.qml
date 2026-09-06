@@ -79,16 +79,23 @@ Singleton {
     function refresh() {
         const wp = settings.wallpaper || "";
         const cfg = Qt.resolvedUrl("theme/matugen.toml").toString().replace(/^file:\/\//, "");
-        if (wp !== "") {
-            // Image source: matugen can't pick an accent color by itself
-            // outside a terminal ("multiple source colors found...") —
-            // prefer the palette closest to our fallback so the theme
-            // stays close to the configured source color.
-            matugenProc.command = ["matugen", "image", wp, "--prefer", "closest-to-fallback", "-c", cfg];
-        } else {
-            matugenProc.command = ["matugen", "color", "hex", (settings.sourceColor || sourceColor), "-c", cfg];
-        }
+        const broadcast = Qt.resolvedUrl("theme/broadcast.toml").toString().replace(/^file:\/\//, "");
+        // Pick the palette once for both the shell and the broadcast.
+        const base = wp !== ""
+            ? ["matugen", "image", wp, "--prefer", "closest-to-fallback"]
+            : ["matugen", "color", "hex", (settings.sourceColor || sourceColor)];
+        matugenProc.command = base.concat(["-c", cfg]);
+        broadcastProc.command = base.concat(["-c", broadcast]);
         matugenProc.running = true;
+        broadcastProc.running = true;
+    }
+
+    // Theme broadcast — writes ghostty/fish/starship/fastfetch theme files
+    // under ~/.config/basalt/themes via the same palette.
+    Process {
+        id: broadcastProc
+        stdout: StdioCollector {}
+        stderr: StdioCollector {}
     }
 
     Process {
