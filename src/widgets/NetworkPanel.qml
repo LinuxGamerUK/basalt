@@ -18,14 +18,14 @@ Rectangle {
     // The ethernet device (if any) — the first non-wifi managed device.
     readonly property var ethDevice: {
         const devs = Networking.devices.values.filter(
-            d => d.nmManaged && d.type !== NetworkDeviceType.Wifi);
+            d => d.nmManaged && d.type !== DeviceType.Wifi);
         return devs.length > 0 ? devs[0] : null;
     }
 
     // The wifi device + its scanner (if any).
     readonly property var wifiDevice: {
         const devs = Networking.devices.values.filter(
-            d => d.type === NetworkDeviceType.Wifi && d.nmManaged);
+            d => d.type === DeviceType.Wifi && d.nmManaged);
         return devs.length > 0 ? devs[0] : null;
     }
 
@@ -58,7 +58,7 @@ Rectangle {
     function netStateIcon(device) {
         if (!device) return "󰌙";
         if (device.connected) {
-            return device.type === NetworkDeviceType.Wifi
+            return device.type === DeviceType.Wifi
                 ? "󰤨" : "󰈀";
         }
         return "󰌙";

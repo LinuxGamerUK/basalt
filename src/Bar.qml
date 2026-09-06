@@ -39,7 +39,7 @@ PanelWindow {
     }
     readonly property bool netConnected: root.netDevice !== null
     readonly property bool netIsWifi: root.netDevice !== null
-        && root.netDevice.type === NetworkDeviceType.Wifi
+        && root.netDevice.type === DeviceType.Wifi
 
     anchors {
         top: true
