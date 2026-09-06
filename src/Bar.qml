@@ -68,10 +68,10 @@ PanelWindow {
                 radius: height / 2
                 color: root.launcherOpen ? Theme.primary : Theme.surfaceContainerHigh
                 // The real NixOS snowflake — blue when closed, the white
-                // variant on the accent fill while open. Both resolved
-                // through the image://icon provider (the colored SVG also
-                // lives at the local hicolor override for direct refs).
-                IconImage {
+                // variant on the accent fill while open. The colored SVG
+                // is HM-managed at the local hicolor override; the white
+                // resolves through the icon provider.
+                Image {
                     anchors.centerIn: parent
                     width: 20
                     height: 20
@@ -79,6 +79,9 @@ PanelWindow {
                         ? "image://icon/nix-snowflake-white"
                         : "file://" + Quickshell.env("HOME")
                             + "/.local/share/icons/hicolor/scalable/apps/nix-snowflake.svg"
+                    sourceSize.width: 40
+                    sourceSize.height: 40
+                    fillMode: Image.PreserveAspectFit
                     asynchronous: true
                 }
                 MouseArea {
