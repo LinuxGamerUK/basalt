@@ -49,6 +49,14 @@ ShellRoot {
         model: Quickshell.screens
 
         delegate: Component {
+            Osd {}
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        delegate: Component {
             Launcher {}
         }
     }
