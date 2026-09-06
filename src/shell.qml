@@ -25,6 +25,20 @@ ShellRoot {
         }
     }
 
+    // Mixer IPC — `qs ipc call mixer toggle`: opens the mixer on the
+    // focused monitor (also lets synthetic pointer drags be tested).
+    IpcHandler {
+        target: "mixer"
+
+        function toggle() {
+            const focused = Hyprland.focusedMonitor
+                ? Hyprland.focusedMonitor.name : "";
+            if (focused !== "") {
+                Ui.toggleMixer(focused);
+            }
+        }
+    }
+
     // Click-catcher — created first so it maps at the BOTTOM of the
     // layer: bars and popups always stack above it. Its MouseArea is
     // active only while a popup is open — desktop clicks close any open
