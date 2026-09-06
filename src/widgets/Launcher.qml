@@ -185,8 +185,16 @@ PanelWindow {
                                 // QuickShell's icon provider: theme lookup
                                 // + SNI pixmaps — the raw name on IconImage
                                 // renders blank for most apps.
-                                source: "image://icon/"
-                                    + (appRow.modelData.icon || "")
+                                // Special case: the NixOS snowflake — the
+                                // size-based lookup keeps resolving the
+                                // nixos-icons package's WHITE variant, so
+                                // the colored SVG is referenced directly
+                                // via the HM-managed override symlink.
+                                source: (appRow.modelData.icon || "") === "nix-snowflake"
+                                    ? "file://" + Quickshell.env("HOME")
+                                        + "/.local/share/icons/hicolor/scalable/apps/nix-snowflake.svg"
+                                    : "image://icon/"
+                                        + (appRow.modelData.icon || "")
                                 asynchronous: true
                             }
                         }
