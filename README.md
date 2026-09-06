@@ -16,9 +16,15 @@ Inspired by the Material shells out there; built to a stricter charter.
 
 ## Status
 
-v0.1 — top bar (workspaces, active window, tray, clock). Development
-happens on the author's machine; the roadmap is notifications/OSD →
-launcher → matugen Material You → optional extras.
+v0.1 — top bar (per-screen workspaces, active window, tray, centered
+date·time clock with calendar dropdown) + Material You palette via
+matugen: generated locally from the wallpaper (`settings.json`
+`"wallpaper": "<path>"`) or a source color (`"sourceColor": "#hex"`,
+default: house cyan). Static dark palette as fallback. No network, ever.
+
+Roadmap: **wallpaper selector** (writes the palette source + re-runs
+matugen) → notifications + OSD → launcher → optional extras (lock screen,
+media popup, settings UI).
 
 ## Try it
 
