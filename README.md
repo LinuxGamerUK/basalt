@@ -46,6 +46,13 @@ Basalt has a short, non-negotiable list of rules:
   accent ring for workspaces that have windows
 - **Active window title** with a 25-character cap
 - **Center-locked date·time clock** with a Material calendar dropdown
+- **Volume & brightness** — bar chips with scroll-to-adjust and
+  click-to-open: the volume chip opens a mixer panel (output/input
+  sliders with mute, clickable device lists to switch default sinks and
+  sources), the brightness chip opens its own compact slider panel; a
+  2-second OSD reacts to the media keys from any source
+- **Audio visualizer** — a 24-bar CAVA spectrum in the bar, reading the
+  default sink's monitor through PipeWire, theme-following
 - **Notification center** — Basalt *is* the system notification daemon
   (org.freedesktop.Notifications via QuickShell): 3-second themed toasts
   top-right, a bell with an unread badge, and a history panel with
@@ -76,7 +83,8 @@ Basalt has a short, non-negotiable list of rules:
 - **Material You theming** — the palette is generated *locally* by
   [matugen](https://github.com/InioX/matugen) from your wallpaper (or any
   source color), with a hand-tuned dark palette as the fallback
-- **JetBrains Mono Nerd Font Propo** typography by default
+- **JetBrains Mono Nerd Font Propo** typography by default — everywhere,
+  including every popup
 
 ## Requirements
 
@@ -237,28 +245,20 @@ Bitten and learned the hard way — they are baked into Basalt's code:
 
 ## Roadmap
 
-- Volume/brightness OSD
 - Lock screen (WlSessionLock + PAM)
 - Media popup (MPRIS)
 
 ## Version history
 
-- **v0.2.0 — 2026-09-06** (this tag): wallpaper picker + system-wide live
-  theming (shell, ghostty hot-reload, fish, starship powerline,
-  fastfetch), house interaction rules (click-outside closes popups,
-  per-screen popups), workspace on-click + has-windows ring, resolution
-  scaling, atomic workspace moves
-- **v0.1.0 — 2026-09-06**: Material top bar — per-screen workspaces,
-  window title, clock + calendar, tray
-
-## Version history
-
-- **v0.3.0 — 2026-09-06** (this tag): system tray with D-Bus menus,
-  notification center (Basalt as the D-Bus daemon: toasts, bell,
-  history), launcher with usage-frequency ranking and real NixOS
-  snowflake icons, Hyprland border theming, declarative Qt/GTK theming
-  (dark native menus via qtct + Adwaita-Dark), workspace startup
-  self-heal
+- **v0.3.1 — 2026-09-06** (this tag): volume & brightness bar chips with
+  scroll-to-adjust, click-open mixer and brightness panels, device
+  switching, an explicitly-triggered OSD, the CAVA visualizer (pipewire
+  input), and popup text at the house 14pt standard
+- **v0.3.0 — 2026-09-06**: system tray with D-Bus menus, notification
+  center (Basalt as the D-Bus daemon: toasts, bell, history), launcher
+  with usage-frequency ranking and real NixOS snowflake icons, Hyprland
+  border theming, declarative Qt/GTK theming (dark native menus via qtct
+  + Adwaita-Dark), workspace startup self-heal
 - **v0.2.0 — 2026-09-06**: wallpaper picker + system-wide live theming
   (shell, ghostty hot-reload, fish, starship powerline, fastfetch),
   house interaction rules, workspace polish
