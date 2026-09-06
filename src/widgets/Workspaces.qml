@@ -73,9 +73,19 @@ RowLayout {
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                // Creates the workspace here if missing; pulls it back to
-                // this screen if it drifted.
-                onClicked: Hyprland.dispatch("workspace " + parent.modelData)
+                onClicked: {
+                    if (Hyprland.usingLua) {
+                        // Lua-mode Hyprland mangles string dispatches
+                        // ("hl.dispatch(workspace 7)" is invalid Lua) —
+                        // use the hl.dsp.focus API. Two steps: land on the
+                        // screen, then the workspace — which creates it
+                        // there if missing and pulls it back if drifted.
+                        Hyprland.dispatch('hl.dsp.focus({ monitor = "' + root.screenName + '" })');
+                        Hyprland.dispatch('hl.dsp.focus({ workspace = "' + parent.modelData + '" })');
+                    } else {
+                        Hyprland.dispatch("workspace " + parent.modelData);
+                    }
+                }
             }
         }
     }
