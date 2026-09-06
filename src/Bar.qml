@@ -130,6 +130,8 @@ PanelWindow {
             // Right: tray leftmost, then volume + brightness chips, then the
             // picker and notifications buttons rightmost
 
+            Tray {}
+
             // Volume — the default sink; scroll ±5%, click toggles mute.
             PwObjectTracker {
                 objects: Pipewire.defaultAudioSink
@@ -343,8 +345,6 @@ PanelWindow {
                     }
                 }
             }
-
-            Tray {}
         }
 
         // Center: the clock is anchored to the pill itself — locked to
