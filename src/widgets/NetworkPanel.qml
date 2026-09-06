@@ -31,6 +31,22 @@ Rectangle {
 
     readonly property bool wifiUp: Networking.wifiEnabled
 
+    // The wifi scanner is off by default in QuickShell — enable it as
+    // soon as the panel opens (and keep it on while open) so the
+    // network list populates.
+    onVisibleChanged: {
+        if (visible && wifiDevice !== null) {
+            wifiDevice.scannerEnabled = true;
+        }
+    }
+
+    // Re-assert the scanner enablement when a wifi device appears.
+    Connections {
+        target: Networking
+        ignoreUnknownSignals: true
+        function onItemRegistered() {}
+    }
+
     function signalIcon(strength) {
         if (strength > 80) return "󰤨";
         if (strength > 60) return "󰤥";
@@ -92,6 +108,26 @@ Rectangle {
                 ? Theme.primary : Theme.textSecondary
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSize - 2
+            elide: Text.ElideRight
+            maximumLineCount: 1
+        }
+
+        // The current connection — the connected network's name.
+        Text {
+            Layout.fillWidth: true
+            visible: wifiDevice !== null && wifiDevice.connected
+            text: {
+                const nets = wifiDevice !== null
+                    ? wifiDevice.networks.values : [];
+                const conn = nets.filter(n => n.connected);
+                return conn.length > 0
+                    ? "󰖟 " + (conn[0].name || "connected")
+                    : "";
+            }
+            color: Theme.primary
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSize
+            font.bold: true
             elide: Text.ElideRight
             maximumLineCount: 1
         }
