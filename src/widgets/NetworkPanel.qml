@@ -49,12 +49,16 @@ Rectangle {
         function onItemRegistered() {}
     }
 
-    // DEBUG: what the panel sees while open.
+    // DEBUG + scanner re-assert: NetworkManager can reset the scanner
+    // setting, so re-assert it on every tick while the panel is open.
     Timer {
         interval: 1500
         running: root.visible
         repeat: true
         onTriggered: {
+            if (wifiDevice !== null && !wifiDevice.scannerEnabled) {
+                wifiDevice.scannerEnabled = true;
+            }
             console.log("netpanel: wifiDevice=" + (wifiDevice !== null)
                 + " scanner=" + (wifiDevice !== null ? wifiDevice.scannerEnabled : "-")
                 + " nets=" + (wifiDevice !== null ? wifiDevice.networks.values.length : "-")
