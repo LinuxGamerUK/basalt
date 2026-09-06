@@ -49,19 +49,24 @@ RowLayout {
             required property int modelData
             readonly property var live: root.liveWorkspace(modelData)
             readonly property bool isActive: live ? (live.active ?? false) : false
+            // Has windows on it right now (but not active here) → the
+            // secondary accent state.
+            readonly property bool hasWindows: live ? ((live.toplevels.count ?? 0) > 0) : false
 
             // implicitWidth/Height: RowLayout sizes children from implicit
             // sizes — explicit width/height gets stomped to 0.
             implicitWidth: 24
             implicitHeight: Theme.chipHeight - 8
             radius: height / 2
-            // One visual format for every pill, always — Hyprland
-            // auto-destroys empty non-persistent workspaces, so "missing"
-            // is a transient state and must not read as a broken style.
-            // Click materializes the workspace on this screen.
+            // Three states, one visual language:
+            //   active       → primary fill
+            //   has windows  → secondary border (content present elsewhere)
+            //   empty/missing→ plain outline
             color: isActive ? Theme.primary : Theme.surfaceContainerHigh
-            border.width: 1
-            border.color: isActive ? Theme.primary : Theme.outline
+            border.width: (!isActive && hasWindows) ? 2 : 1
+            border.color: isActive
+                ? Theme.primary
+                : (hasWindows ? Theme.secondary : Theme.outline)
 
             Text {
                 anchors.centerIn: parent
@@ -77,13 +82,12 @@ RowLayout {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     if (Hyprland.usingLua) {
-                        // Lua-mode Hyprland mangles string dispatches
-                        // ("hl.dispatch(workspace 7)" is invalid Lua) —
-                        // use the hl.dsp.focus API. Two steps: land on the
-                        // screen, then the workspace — which creates it
-                        // there if missing and pulls it back if drifted.
+                        // Lua mode: pass a NUMBER id, not a string — a
+                        // string creates a NAMED workspace instead of
+                        // switching to id N. Two steps: land on the screen,
+                        // then the workspace (creates/pulls it here).
                         Hyprland.dispatch('hl.dsp.focus({ monitor = "' + root.screenName + '" })');
-                        Hyprland.dispatch('hl.dsp.focus({ workspace = "' + parent.modelData + '" })');
+                        Hyprland.dispatch('hl.dsp.focus({ workspace = ' + parent.modelData + ' })');
                     } else {
                         Hyprland.dispatch("workspace " + parent.modelData);
                     }
