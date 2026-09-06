@@ -31,7 +31,7 @@ RowLayout {
             radius: 1.5
             color: Theme.primary
             opacity: 0.85
-            anchors.bottom: parent.bottom
+            Layout.alignment: Qt.AlignBottom
             height: 2 + Math.max(0, Math.min(1, (root.bars[index] || 0) / root.valueMax))
                 * (root.height - 2)
 

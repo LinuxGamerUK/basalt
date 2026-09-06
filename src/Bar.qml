@@ -329,7 +329,7 @@ PanelWindow {
                     implicitWidth: 16
                     implicitHeight: 16
                     radius: 8
-                    color: Theme.error
+                    color: Theme.errorColor
 
                     Text {
                         anchors.centerIn: parent

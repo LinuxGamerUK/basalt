@@ -46,7 +46,7 @@ Rectangle {
 
             Text {
                 text: MixerState.sinkMuted ? "󰝟" : "󰕾"
-                color: MixerState.sinkMuted ? Theme.error : Theme.primary
+                color: MixerState.sinkMuted ? Theme.errorColor : Theme.primary
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSize
 
