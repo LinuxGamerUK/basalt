@@ -29,6 +29,10 @@ RowLayout {
 
     spacing: 4
 
+    Component.onCompleted: console.log("[basalt] workspaces — screen:", root.screenName,
+        "| hyprland total:", Hyprland.workspaces.length,
+        "| on this screen:", root.screenWorkspaces.length)
+
     Repeater {
         model: screenWorkspaces
 
@@ -36,8 +40,10 @@ RowLayout {
             required property var modelData
             readonly property bool isActive: modelData.active ?? false
 
-            width: 24
-            height: Theme.chipHeight - 8
+            // implicitWidth/Height: RowLayout sizes children from implicit
+            // sizes — explicit width/height gets stomped to 0.
+            implicitWidth: 24
+            implicitHeight: Theme.chipHeight - 8
             radius: height / 2
             color: isActive ? Theme.primary : Theme.surfaceContainerHigh
             border.width: 1

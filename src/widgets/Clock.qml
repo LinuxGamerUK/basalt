@@ -10,7 +10,10 @@ Rectangle {
 
     signal clicked()
 
-    height: Theme.chipHeight
+    signal clicked()
+
+    implicitWidth: timeText.implicitWidth + 28
+    implicitHeight: Theme.chipHeight
     radius: Theme.chipRadius
     color: Theme.surfaceContainerHigh
 
@@ -20,6 +23,7 @@ Rectangle {
     }
 
     Text {
+        id: timeText
         anchors.centerIn: parent
         text: Qt.formatDateTime(clock.date, "ddd dd MMM  ·  HH:mm")
         color: Theme.text

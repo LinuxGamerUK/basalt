@@ -54,7 +54,9 @@ PanelWindow {
                 // null-guard: modelData lands shortly after creation
                 screenName: root.modelData ? root.modelData.name : ""
             }
-            WindowTitle {}
+            WindowTitle {
+                Layout.maximumWidth: 420
+            }
 
             // Center: the clock (true centering between the two spacers)
             Item {

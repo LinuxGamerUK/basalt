@@ -18,11 +18,13 @@ Rectangle {
     }
 
     visible: title !== ""
-    height: Theme.chipHeight
+    implicitWidth: titleText.implicitWidth + 28
+    implicitHeight: Theme.chipHeight
     radius: Theme.chipRadius
     color: Theme.surfaceContainer
 
     Text {
+        id: titleText
         anchors.fill: parent
         anchors.leftMargin: 14
         anchors.rightMargin: 14
