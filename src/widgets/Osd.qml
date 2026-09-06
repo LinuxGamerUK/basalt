@@ -6,13 +6,12 @@ import Quickshell.Services.Pipewire
 
 import "root:/"
 
-// Volume / brightness OSD — reacts to system changes (the media keys
-// drive wpctl / brightnessctl; the OSD just displays what happened).
-// Shows for 2 seconds after the last change, then hides.
-//
-// Volume: QuickShell Pipewire, the default sink's audio node.
-// Brightness: polled from the sysfs backlight (a 250 ms timer — cheap,
-// and it catches changes from any source, not just our binds).
+// Volume / brightness OSD — explicitly triggered by the media-key binds
+// (`qs ipc call osd volume|brightness` chained after wpctl /
+// brightnessctl). No reactive triggers: Arctis Sound Manager adjusts
+// channel volumes constantly, and reactive volumeChanged would stomp the
+// brightness display with the volume card. The level binds to
+// MixerState so held keys animate it live.
 PanelWindow {
     id: root
 
@@ -27,15 +26,30 @@ PanelWindow {
     // OSD state
     property bool osdVisible: false
     property string osdMode: "volume" // "volume" | "brightness"
-    property real osdLevel: 0 // 0..1
     property bool osdMuted: false
 
-    function show(mode, level, muted) {
-        osdMode = mode;
-        osdLevel = level;
-        osdMuted = muted;
-        osdVisible = true;
-        hideTimer.restart();
+    // Level: volume = the MixerState sink (live, held keys animate it);
+    // brightness = the MixerState poll (updates within ~250 ms).
+    readonly property real osdLevel: osdMode === "volume"
+        ? MixerState.sinkVolume
+        : MixerState.brightnessLevel
+
+    IpcHandler {
+        target: "osd"
+
+        function volume() {
+            root.osdMode = "volume";
+            root.osdMuted = MixerState.sinkMuted;
+            root.osdVisible = true;
+            hideTimer.restart();
+        }
+
+        function brightness() {
+            root.osdMode = "brightness";
+            root.osdMuted = false;
+            root.osdVisible = true;
+            hideTimer.restart();
+        }
     }
 
     anchors {
@@ -55,70 +69,6 @@ PanelWindow {
         id: hideTimer
         interval: 2000
         onTriggered: root.osdVisible = false
-    }
-
-    // Volume: the default sink's audio node reacts to wpctl changes.
-    PwObjectTracker {
-        objects: Pipewire.defaultAudioSink ? [Pipewire.defaultAudioSink] : []
-    }
-
-    Connections {
-        target: Pipewire.defaultAudioSink?.audio ?? null
-        ignoreUnknownSignals: true
-        function onVolumeChanged() { root.showVolume(); }
-        function onMutedChanged() { root.showVolume(); }
-    }
-
-    function showVolume() {
-        const audio = Pipewire.defaultAudioSink?.audio;
-        if (!audio) return;
-        root.show("volume", audio.volume, audio.muted);
-    }
-
-    // Brightness: poll the sysfs backlight. The OSD only fires for
-    // changes after the shell has warmed up (3 s) — so the startup read
-    // and anything else non-interactive stays silent.
-    property int brightnessCur: -1
-    property int brightnessMax: -1
-    property bool warm: false
-
-    Timer {
-        id: brightWatch
-        interval: 250
-        running: true
-        repeat: true
-        onTriggered: brightProc.running = true
-    }
-
-    Process {
-        id: brightProc
-        command: ["bash", "-c",
-            "echo \"$(cat /sys/class/backlight/*/brightness 2>/dev/null | head -1) $(cat /sys/class/backlight/*/max_brightness 2>/dev/null | head -1)\""]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const parts = this.text.trim().split(/\s+/);
-                const cur = parseInt(parts[0] || "-1");
-                const max = parseInt(parts[1] || "0");
-                if (isNaN(cur) || cur < 0 || isNaN(max) || max <= 0) return;
-                root.brightnessMax = max;
-                if (root.brightnessCur !== cur) {
-                    const changed = root.brightnessCur > 0;
-                    root.brightnessCur = cur;
-                    if (changed && root.warm) {
-                        root.show("brightness", cur / max, false);
-                    }
-                }
-            }
-        }
-    }
-
-    // Warm-up: suppress the OSD until 3 s after shell start so the first
-    // polls and background restores never trigger it.
-    Timer {
-        interval: 3000
-        running: true
-        repeat: false
-        onTriggered: root.warm = true
     }
 
     Rectangle {
