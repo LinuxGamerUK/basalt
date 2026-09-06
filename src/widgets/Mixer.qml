@@ -15,12 +15,6 @@ Rectangle {
     border.color: Theme.outlineVariant
     border.width: 1
 
-    MouseArea {
-        anchors.fill: parent
-        onPressed: (mouse) => console.log("mixer panel press at",
-            mouse.x.toFixed(0) + "," + mouse.y.toFixed(0))
-    }
-
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 14
