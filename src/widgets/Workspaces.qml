@@ -69,6 +69,16 @@ RowLayout {
         onTriggered: root.heal()
     }
 
+    // Periodic self-heal: workspaces drift when moves/focus land on the
+    // wrong monitor (SUPER+SHIFT+N migrates the destination). Pull strays
+    // home every few seconds so the static layout holds continuously.
+    Timer {
+        interval: 8000
+        running: root.screenName !== ""
+        repeat: true
+        onTriggered: root.heal()
+    }
+
     spacing: 4
 
     Repeater {
