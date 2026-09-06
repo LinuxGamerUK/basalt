@@ -6,11 +6,26 @@ import Quickshell
 // itself — do NOT redeclare them inline here (shadowing breaks the
 // Variants injection).
 ShellRoot {
+    // Click-catcher — created first so it maps at the BOTTOM of the
+    // layer: bars and popups always stack above it. Its MouseArea is
+    // active only while a popup is open — desktop clicks close any open
+    // popup (house rule) without ever blocking normal use.
+    Variants {
+        model: Quickshell.screens
+
+        delegate: ClickCatcher {
+            required property var modelData
+        }
+    }
+
     Variants {
         model: Quickshell.screens
 
         delegate: Component {
-            Bar {}
+            Bar {
+                required property var modelData
+                screen: modelData
+            }
         }
     }
 }

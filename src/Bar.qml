@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Wayland
 
 import "widgets"
+import "root:/"
 
 // Floating Material pill bar across the top of every screen.
 PanelWindow {
@@ -14,8 +15,10 @@ PanelWindow {
     property var modelData
     screen: modelData
 
-    property bool calendarOpen: false
-    property bool pickerOpen: false
+    // Popup state lives on the shared Ui singleton (click-catcher, house
+    // close-on-outside rule).
+    readonly property bool calendarOpen: Ui.calendarOpen
+    readonly property bool pickerOpen: Ui.pickerOpen
 
     anchors {
         top: true
@@ -86,7 +89,7 @@ PanelWindow {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: root.pickerOpen = !root.pickerOpen
+                    onClicked: Ui.pickerOpen = !Ui.pickerOpen
                 }
             }
             Tray {}
@@ -97,7 +100,7 @@ PanelWindow {
         Clock {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
-            onClicked: root.calendarOpen = !root.calendarOpen
+            onClicked: Ui.calendarOpen = !Ui.calendarOpen
         }
     }
 
@@ -115,7 +118,7 @@ PanelWindow {
 
         Calendar {
             anchors.fill: parent
-            onCloseRequested: root.calendarOpen = false
+            onCloseRequested: Ui.calendarOpen = false
         }
     }
 
@@ -133,7 +136,7 @@ PanelWindow {
 
         WallpaperPicker {
             anchors.fill: parent
-            onCloseRequested: root.pickerOpen = false
+            onCloseRequested: Ui.pickerOpen = false
         }
     }
 }
