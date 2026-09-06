@@ -25,7 +25,10 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = [ cfg.package ];
+    # Wallpaper stack: the picker drives hyprpaper via `hyprctl hyprpaper`,
+    # and matugen regenerates the palette locally. Both live on PATH.
+    home.packages = [ cfg.package pkgs.hyprpaper pkgs.matugen ];
+    home.file.".config/hypr/hyprpaper.conf".text = "";
 
     systemd.user.services.basalt = {
       Unit = {
@@ -41,6 +44,26 @@ in
         ExecStart = "${cfg.package.passthru.quickshell}/bin/qs -p ${cfg.package}/share/basalt";
         Restart = "on-failure";
         RestartSec = 3;
+        # The scripts (basalt scripts/*, python3) resolve tools from PATH —
+        # per-user profile carries this module's packages.
+        Environment = "PATH=%h/.local/bin:/etc/profiles/per-user/%u/bin:/run/current-system/sw/bin:/usr/bin:/bin";
+      };
+      Install = {
+        WantedBy = [ cfg.systemdTarget ];
+      };
+    };
+
+    systemd.user.services.basalt-hyprpaper = {
+      Unit = {
+        Description = "hyprpaper wallpaper daemon for Basalt";
+        After = [ cfg.systemdTarget ];
+        PartOf = [ cfg.systemdTarget ];
+        StartLimitIntervalSec = 0;
+      };
+      Service = {
+        ExecStart = "${pkgs.hyprpaper}/bin/hyprpaper";
+        Restart = "on-failure";
+        RestartSec = 2;
       };
       Install = {
         WantedBy = [ cfg.systemdTarget ];

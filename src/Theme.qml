@@ -93,6 +93,12 @@ Singleton {
                     root.settings = {};
                 }
                 root.refresh();
+                // Persisted wallpaper — applied at every shell start, i.e.
+                // at login / Hyprland launch. This is the default-wallpaper
+                // mechanism.
+                if (root.settings.wallpaper) {
+                    root.applyWallpaperFile(root.settings.wallpaper);
+                }
             }
         }
     }
@@ -109,6 +115,62 @@ Singleton {
             }
         }
     }
+
+    // Settings writer — merges one key into settings.json (python3, local).
+    Process {
+        id: writeProc
+        property string key: ""
+        property string value: ""
+        stdout: StdioCollector {}
+        onExited: {
+            if (root.onSettingsSaved) {
+                const f = root.onSettingsSaved;
+                root.onSettingsSaved = null;
+                f();
+            }
+        }
+    }
+
+    // Wallpaper applier — src/scripts/set-wallpaper.sh (hyprpaper).
+    Process {
+        id: wallProc
+        stdout: StdioCollector {}
+    }
+
+    function saveSetting(key, value, then) {
+        root.onSettingsSaved = then || null;
+        writeProc.key = key;
+        writeProc.value = value;
+        writeProc.command = ["python3", "-c",
+            "import json, sys, os\n" +
+            "p = sys.argv[1]\n" +
+            "s = {}\n" +
+            "try:\n    s = json.load(open(p))\n" +
+            "except Exception:\n    pass\n" +
+            "s[sys.argv[2]] = sys.argv[3]\n" +
+            "os.makedirs(os.path.dirname(p), exist_ok=True)\n" +
+            "json.dump(s, open(p, 'w'))",
+            Quickshell.env("HOME") + "/.config/basalt/settings.json",
+            key, value];
+        writeProc.running = true;
+    }
+
+    function applyWallpaperFile(path) {
+        const script = Qt.resolvedUrl("scripts/set-wallpaper.sh").toString().replace(/^file:\/\//, "");
+        wallProc.command = ["bash", script, path, settings.wallpaper || ""];
+        wallProc.running = true;
+    }
+
+    // From the picker: persist, apply through hyprpaper, regenerate the
+    // palette from the new wallpaper — the whole Material You payoff.
+    function applyWallpaper(path) {
+        saveSetting("wallpaper", path, () => {
+            applyWallpaperFile(path);
+            refresh();
+        });
+    }
+
+    property var onSettingsSaved: null
 
     Component.onCompleted: settingsProc.running = true
 }

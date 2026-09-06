@@ -15,6 +15,7 @@ PanelWindow {
     screen: modelData
 
     property bool calendarOpen: false
+    property bool pickerOpen: false
 
     anchors {
         top: true
@@ -60,7 +61,26 @@ PanelWindow {
                 Layout.maximumWidth: root.width / 2 - 160
             }
 
-            // Right
+            // Right: wallpaper picker button, then tray
+            Rectangle {
+                id: wallBtn
+                implicitWidth: Theme.chipHeight
+                implicitHeight: Theme.chipHeight
+                radius: height / 2
+                color: root.pickerOpen ? Theme.primary : Theme.surfaceContainerHigh
+                Text {
+                    anchors.centerIn: parent
+                    text: "\uf03e"
+                    color: root.pickerOpen ? Theme.textOnPrimary : Theme.text
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSize
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.pickerOpen = !root.pickerOpen
+                }
+            }
             Tray {}
         }
 
@@ -88,6 +108,24 @@ PanelWindow {
         Calendar {
             anchors.fill: parent
             onCloseRequested: root.calendarOpen = false
+        }
+    }
+
+    // Wallpaper picker — right-aligned under the bar, near its button.
+    PopupWindow {
+        id: pickerPopup
+        anchor.window: root
+        anchor.edges: Edges.Bottom
+        anchor.rect.x: Math.max(8, root.width - 676)
+        anchor.rect.y: Theme.barHeight + Theme.barMargin
+        visible: root.pickerOpen
+        implicitWidth: 660
+        implicitHeight: 480
+        color: "transparent"
+
+        WallpaperPicker {
+            anchors.fill: parent
+            onCloseRequested: root.pickerOpen = false
         }
     }
 }
