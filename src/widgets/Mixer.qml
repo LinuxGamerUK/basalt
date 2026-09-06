@@ -62,8 +62,22 @@ Rectangle {
                 Layout.fillWidth: true
                 from: 0
                 to: 1
-                value: MixerState.sinkVolume
+                value: 0
                 onMoved: MixerState.setSinkVolume(value)
+
+                // Imperative value sync: a reactive value-binding here
+                // yanks the handle back mid-drag on every PipeWire echo
+                // (the classic two-way-binding fight). Follow the server
+                // only while the user is not holding the handle.
+                Component.onCompleted: value = MixerState.sinkVolume
+
+                Connections {
+                    target: MixerState
+                    function onSinkVolumeChanged() {
+                        if (!sinkSlider.pressed)
+                            sinkSlider.value = MixerState.sinkVolume;
+                    }
+                }
 
                 background: Rectangle {
                     x: sinkSlider.leftPadding
@@ -151,8 +165,18 @@ Rectangle {
                 Layout.fillWidth: true
                 from: 0
                 to: 1
-                value: MixerState.sourceVolume
+                value: 0
                 onMoved: MixerState.setSourceVolume(value)
+
+                Component.onCompleted: value = MixerState.sourceVolume
+
+                Connections {
+                    target: MixerState
+                    function onSourceVolumeChanged() {
+                        if (!sourceSlider.pressed)
+                            sourceSlider.value = MixerState.sourceVolume;
+                    }
+                }
 
                 background: Rectangle {
                     x: sourceSlider.leftPadding

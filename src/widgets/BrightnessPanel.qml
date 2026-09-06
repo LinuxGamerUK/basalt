@@ -44,8 +44,20 @@ Rectangle {
                 Layout.fillWidth: true
                 from: 0
                 to: 1
-                value: MixerState.brightnessLevel
+                value: 0
                 onMoved: MixerState.setBrightness(value)
+
+                // Same guard as the mixer sliders: the 250 ms sysfs poll
+                // must not yank the handle back mid-drag.
+                Component.onCompleted: value = MixerState.brightnessLevel
+
+                Connections {
+                    target: MixerState
+                    function onBrightnessLevelChanged() {
+                        if (!brightSlider.pressed)
+                            brightSlider.value = MixerState.brightnessLevel;
+                    }
+                }
 
                 background: Rectangle {
                     x: brightSlider.leftPadding
