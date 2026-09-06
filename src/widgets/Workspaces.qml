@@ -76,7 +76,14 @@ RowLayout {
         interval: 8000
         running: root.screenName !== ""
         repeat: true
-        onTriggered: root.heal()
+        onTriggered: {
+            // ONE healer only — the primary bar. Two bars healing fight
+            // over the monitor focus (each heal ends with a focus on its
+            // own screen, bouncing the view between monitors).
+            if (root.screenName === (Theme.settings.primaryScreen || "eDP-1")) {
+                root.heal();
+            }
+        }
     }
 
     spacing: 4
