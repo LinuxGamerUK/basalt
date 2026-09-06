@@ -74,11 +74,12 @@ PanelWindow {
                 implicitWidth: Theme.chipHeight
                 implicitHeight: Theme.chipHeight
                 radius: height / 2
-                color: root.pickerOpen ? Theme.primary : Theme.surfaceContainerHigh
+                // TEMP: loud fill so the button's position is obvious
+                color: "#ff00ff"
                 Text {
                     anchors.centerIn: parent
                     text: "\uf03e"
-                    color: root.pickerOpen ? Theme.textOnPrimary : Theme.text
+                    color: Theme.text
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSize
                 }
