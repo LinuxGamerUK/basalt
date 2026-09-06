@@ -55,24 +55,21 @@ PanelWindow {
                 screenName: root.modelData ? root.modelData.name : ""
             }
             WindowTitle {
-                Layout.maximumWidth: 420
-            }
-
-            // Center: the clock (true centering between the two spacers)
-            Item {
                 Layout.fillWidth: true
-                Layout.minimumWidth: 8
-            }
-            Clock {
-                onClicked: root.calendarOpen = !root.calendarOpen
-            }
-            Item {
-                Layout.fillWidth: true
-                Layout.minimumWidth: 8
+                // Never run underneath the center-locked clock.
+                Layout.maximumWidth: root.width / 2 - 160
             }
 
             // Right
             Tray {}
+        }
+
+        // Center: the clock is anchored to the pill itself — locked to
+        // true center regardless of title width or module sizes.
+        Clock {
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.verticalCenter: parent.verticalCenter
+            onClicked: root.calendarOpen = !root.calendarOpen
         }
     }
 

@@ -55,16 +55,17 @@ RowLayout {
             implicitWidth: 24
             implicitHeight: Theme.chipHeight - 8
             radius: height / 2
+            // One visual format for every pill — missing workspaces are the
+            // same style at reduced opacity, never a different palette.
+            opacity: live ? 1.0 : 0.5
             color: isActive ? Theme.primary : Theme.surfaceContainerHigh
             border.width: 1
-            border.color: isActive ? Theme.primary
-                         : (live ? Theme.outline : Theme.outlineVariant)
+            border.color: isActive ? Theme.primary : Theme.outline
 
             Text {
                 anchors.centerIn: parent
                 text: parent.modelData % 10
-                color: parent.isActive ? Theme.textOnPrimary
-                     : (parent.live ? Theme.textSecondary : Theme.outline)
+                color: parent.isActive ? Theme.textOnPrimary : Theme.textSecondary
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSize
                 font.bold: parent.isActive

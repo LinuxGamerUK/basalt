@@ -12,6 +12,9 @@ Rectangle {
         return tl ? (tl.title ?? "") : "";
     }
 
+    // House cap: 25 characters, ellipsis beyond.
+    readonly property int maxChars: 25
+
     visible: title !== ""
     implicitWidth: titleText.implicitWidth + 28
     implicitHeight: Theme.chipHeight
@@ -23,7 +26,9 @@ Rectangle {
         anchors.fill: parent
         anchors.leftMargin: 14
         anchors.rightMargin: 14
-        text: chip.title
+        text: chip.title.length > chip.maxChars
+              ? chip.title.slice(0, chip.maxChars) + "…"
+              : chip.title
         color: Theme.text
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontSize
