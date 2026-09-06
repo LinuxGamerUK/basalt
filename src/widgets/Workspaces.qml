@@ -58,8 +58,12 @@ RowLayout {
                 : Quickshell.screens
                     .filter(s => s.name !== (Theme.settings.primaryScreen || "eDP-1"))
                     .map(s => s.name)[0] || "";
-            if (home === "" || ws.monitor === home) continue;
-            console.log("heal: pulling ws " + n + " from " + ws.monitor + " to " + home);
+            // ws.monitor is a HyprlandMonitor object — compare its .name,
+            // not the object itself (an object-vs-string compare is always
+            // unequal: every workspace looked like a stray on every pass,
+            // which was the constant churn / "mind of its own").
+            if (home === "" || ws.monitor.name === home) continue;
+            console.log("heal: pulling ws " + n + " from " + ws.monitor.name + " to " + home);
             Hyprland.dispatch('hl.dsp.focus({ workspace = ' + n + ' })');
             Hyprland.dispatch('hl.dsp.workspace.move({ monitor = "' + home + '" })');
             Hyprland.dispatch('hl.dsp.focus({ monitor = "' + root.screenName + '" })');
