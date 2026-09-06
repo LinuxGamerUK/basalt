@@ -37,7 +37,7 @@ Rectangle {
             width: root.norm * parent.width
             height: parent.height
             radius: 5
-            color: root.muted ? Theme.error : Theme.primary
+            color: root.muted ? Theme.errorColor : Theme.primary
         }
     }
 
