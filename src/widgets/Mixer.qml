@@ -25,7 +25,7 @@ Rectangle {
             text: "OUTPUT"
             color: Theme.textSecondary
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSize - 3
+            font.pixelSize: Theme.fontSize
             font.bold: true
         }
 
@@ -35,7 +35,7 @@ Rectangle {
             text: MixerState.sinkName
             color: Theme.text
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSize - 2
+            font.pixelSize: Theme.fontSize
             elide: Text.ElideRight
             maximumLineCount: 1
         }
@@ -97,7 +97,7 @@ Rectangle {
                 text: Math.round(MixerState.sinkVolume * 100) + "%"
                 color: Theme.text
                 font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSize - 3
+                font.pixelSize: Theme.fontSize
                 Layout.preferredWidth: 40
                 horizontalAlignment: Text.AlignRight
             }
@@ -114,7 +114,7 @@ Rectangle {
             text: "INPUT"
             color: Theme.textSecondary
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSize - 3
+            font.pixelSize: Theme.fontSize
             font.bold: true
         }
 
@@ -124,7 +124,7 @@ Rectangle {
             text: MixerState.sourceName
             color: Theme.text
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSize - 2
+            font.pixelSize: Theme.fontSize
             elide: Text.ElideRight
             maximumLineCount: 1
         }
@@ -186,7 +186,7 @@ Rectangle {
                 text: Math.round(MixerState.sourceVolume * 100) + "%"
                 color: Theme.text
                 font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSize - 3
+                font.pixelSize: Theme.fontSize
                 Layout.preferredWidth: 40
                 horizontalAlignment: Text.AlignRight
             }
@@ -203,7 +203,7 @@ Rectangle {
             text: "OUTPUT DEVICES"
             color: Theme.textSecondary
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSize - 4
+            font.pixelSize: Theme.fontSize
             font.bold: true
         }
 
@@ -234,7 +234,7 @@ Rectangle {
                         color: MixerState.sink && MixerState.sink.id === modelData.id
                             ? Theme.primary : Theme.textSecondary
                         font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSize - 4
+                        font.pixelSize: Theme.fontSize
                         elide: Text.ElideRight
                         maximumLineCount: 1
                     }
@@ -252,7 +252,7 @@ Rectangle {
             text: "INPUT DEVICES"
             color: Theme.textSecondary
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSize - 4
+            font.pixelSize: Theme.fontSize
             font.bold: true
         }
 
@@ -283,7 +283,7 @@ Rectangle {
                         color: MixerState.source && MixerState.source.id === modelData.id
                             ? Theme.primary : Theme.textSecondary
                         font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSize - 4
+                        font.pixelSize: Theme.fontSize
                         elide: Text.ElideRight
                         maximumLineCount: 1
                     }
@@ -308,7 +308,7 @@ Rectangle {
             text: "BRIGHTNESS"
             color: Theme.textSecondary
             font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSize - 3
+            font.pixelSize: Theme.fontSize
             font.bold: true
         }
 
@@ -363,7 +363,7 @@ Rectangle {
                 text: Math.round(MixerState.brightnessLevel * 100) + "%"
                 color: Theme.text
                 font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSize - 3
+                font.pixelSize: Theme.fontSize
                 Layout.preferredWidth: 40
                 horizontalAlignment: Text.AlignRight
             }

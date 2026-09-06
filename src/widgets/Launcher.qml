@@ -222,7 +222,7 @@ PanelWindow {
                                     ? Theme.textOnPrimary : Theme.textSecondary
                                 opacity: 0.8
                                 font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontSize - 3
+                                font.pixelSize: Theme.fontSize
                                 elide: Text.ElideRight
                                 maximumLineCount: 1
                             }

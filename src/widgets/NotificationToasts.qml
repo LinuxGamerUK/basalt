@@ -117,7 +117,7 @@ PanelWindow {
                             text: toastCard.modelData.body
                             color: Theme.textSecondary
                             font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSize - 2
+                            font.pixelSize: Theme.fontSize
                             elide: Text.ElideRight
                             maximumLineCount: 2
                             wrapMode: Text.Wrap
@@ -128,7 +128,7 @@ PanelWindow {
                             text: toastCard.modelData.appName
                             color: Theme.textSecondary
                             font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSize - 4
+                            font.pixelSize: Theme.fontSize
                             opacity: 0.7
                             elide: Text.ElideRight
                             maximumLineCount: 1
@@ -139,7 +139,7 @@ PanelWindow {
                         text: "󰅂"
                         color: Theme.textSecondary
                         font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSize - 2
+                        font.pixelSize: Theme.fontSize
 
                         MouseArea {
                             anchors.fill: parent

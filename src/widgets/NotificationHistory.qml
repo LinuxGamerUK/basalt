@@ -47,7 +47,7 @@ Rectangle {
                     text: "Clear all"
                     color: Theme.textSecondary
                     font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSize - 3
+                    font.pixelSize: Theme.fontSize
                 }
 
                 MouseArea {
@@ -65,7 +65,7 @@ Rectangle {
                     text: "\u2715"
                     color: Theme.text
                     font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSize - 2
+                    font.pixelSize: Theme.fontSize
                 }
                 MouseArea {
                     anchors.fill: parent
@@ -123,7 +123,7 @@ Rectangle {
                                     + "  ·  " + entry.modelData.time
                                 color: Theme.text
                                 font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontSize - 2
+                                font.pixelSize: Theme.fontSize
                                 font.bold: true
                                 elide: Text.ElideRight
                                 maximumLineCount: 1
@@ -135,7 +135,7 @@ Rectangle {
                                 text: entry.modelData.body
                                 color: Theme.textSecondary
                                 font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontSize - 3
+                                font.pixelSize: Theme.fontSize
                                 elide: Text.ElideRight
                                 maximumLineCount: 2
                                 wrapMode: Text.Wrap
@@ -146,7 +146,7 @@ Rectangle {
                                 text: entry.modelData.appName
                                 color: Theme.textSecondary
                                 font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontSize - 4
+                                font.pixelSize: Theme.fontSize
                                 opacity: 0.7
                                 elide: Text.ElideRight
                                 maximumLineCount: 1
@@ -157,7 +157,7 @@ Rectangle {
                             text: "󰅂"
                             color: Theme.textSecondary
                             font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSize - 2
+                            font.pixelSize: Theme.fontSize
 
                             MouseArea {
                                 anchors.fill: parent

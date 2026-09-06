@@ -47,7 +47,7 @@ Rectangle {
                     text: root.folder
                     color: Theme.text
                     font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSize - 2
+                    font.pixelSize: Theme.fontSize
                     verticalAlignment: TextInput.AlignVCenter
                     selectByMouse: true
                     onAccepted: {
