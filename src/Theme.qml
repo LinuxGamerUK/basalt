@@ -14,7 +14,7 @@ import Quickshell.Io
 //      settings exist yet.
 //
 // NOTE: no `on*` property names — QML reserves onXxx for signal handlers.
-QtObject {
+Singleton {
     id: root
 
     // ---- tonal surfaces (dark scheme) ----
