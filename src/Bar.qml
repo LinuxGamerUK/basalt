@@ -5,6 +5,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
 import Quickshell.Services.Pipewire
+import Quickshell.Networking
 
 import "widgets"
 import "root:/"
@@ -26,7 +27,19 @@ PanelWindow {
     readonly property bool launcherOpen: Ui.launcherScreen === root.screenName
     readonly property bool mixerOpen: Ui.mixerScreen === root.screenName
     readonly property bool brightnessOpen: Ui.brightnessScreen === root.screenName
+    readonly property bool networkOpen: Ui.networkScreen === root.screenName
     readonly property string screenName: root.modelData ? root.modelData.name : ""
+
+    // Network chip state — the connected device, its type, and the
+    // connection's address.
+    readonly property var netDevice: {
+        const conns = Networking.devices.values.filter(
+            d => d.nmManaged && d.connected);
+        return conns.length > 0 ? conns[0] : null;
+    }
+    readonly property bool netConnected: root.netDevice !== null
+    readonly property bool netIsWifi: root.netDevice !== null
+        && root.netDevice.type === NetworkDeviceType.Wifi
 
     anchors {
         top: true
@@ -254,6 +267,34 @@ PanelWindow {
                     onClicked: Ui.togglePicker(root.screenName)
                 }
             }
+            // Network chip — the connection state, click opens the
+            // network panel.
+            Rectangle {
+                id: netChip
+                implicitWidth: Theme.chipHeight
+                implicitHeight: Theme.chipHeight
+                radius: height / 2
+                color: root.networkOpen
+                    ? Theme.primary : Theme.surfaceContainerHigh
+
+                Text {
+                    anchors.centerIn: parent
+                    text: root.netConnected
+                        ? (root.netIsWifi ? "󰤨" : "󰈀")
+                        : "󰌙"
+                    color: root.networkOpen
+                        ? Theme.textOnPrimary
+                        : (root.netConnected ? Theme.primary : Theme.text)
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSize
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: Ui.toggleNetwork(root.screenName)
+                }
+            }
             Rectangle {
                 id: bellBtn
                 implicitWidth: Theme.chipHeight
@@ -382,6 +423,24 @@ PanelWindow {
         color: Qt.rgba(0, 0, 0, 0)
 
         Mixer {
+            anchors.fill: parent
+        }
+    }
+
+    // Network panel — the connection state + wifi networks. The sun
+    // chip's sibling for the network chip.
+    PopupWindow {
+        id: networkPopup
+        anchor.window: root
+        anchor.edges: Edges.Bottom
+        anchor.rect.x: Math.max(8, root.width - 416)
+        anchor.rect.y: Theme.barHeight + Theme.barMargin * 2
+        visible: root.networkOpen
+        implicitWidth: Math.round(400 * Theme.uiScale)
+        implicitHeight: Math.round(440 * Theme.uiScale)
+        color: Qt.rgba(0, 0, 0, 0)
+
+        NetworkPanel {
             anchors.fill: parent
         }
     }
