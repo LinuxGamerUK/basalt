@@ -30,9 +30,23 @@ RowLayout {
 
     spacing: 4
 
-    Component.onCompleted: console.log("[basalt] workspaces — screen:", root.screenName,
-        "| hyprland total:", Hyprland.workspaces.values.length,
-        "| on this screen:", root.screenWorkspaces.length)
+    Component.onCompleted: logState("onCompleted")
+    onScreenNameChanged: logState("screenNameChanged")
+
+    // Settled-state check — IPC population + modelData injection both
+    // land asynchronously after creation.
+    Timer {
+        interval: 3000
+        running: true
+        repeat: false
+        onTriggered: root.logState("after 3s")
+    }
+
+    function logState(when) {
+        console.log("[basalt] workspaces", when, "— screen:", root.screenName,
+            "| hyprland total:", Hyprland.workspaces.values.length,
+            "| on this screen:", root.screenWorkspaces.length);
+    }
 
     Repeater {
         model: screenWorkspaces
