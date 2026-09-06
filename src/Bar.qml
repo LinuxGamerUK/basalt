@@ -68,13 +68,6 @@ PanelWindow {
                 Layout.fillWidth: true
             }
 
-            // TEMP red layout probe
-            Rectangle {
-                implicitWidth: 40
-                implicitHeight: 30
-                color: "#ff0000"
-            }
-
             // Right: wallpaper picker button, then tray
             Rectangle {
                 id: wallBtn
