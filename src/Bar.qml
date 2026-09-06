@@ -20,6 +20,7 @@ PanelWindow {
     readonly property bool calendarOpen: Ui.calendarScreen === root.screenName
     readonly property bool pickerOpen: Ui.pickerScreen === root.screenName
     readonly property bool notificationsOpen: Ui.notificationsScreen === root.screenName
+    readonly property bool launcherOpen: Ui.launcherScreen === root.screenName
     readonly property string screenName: root.modelData ? root.modelData.name : ""
 
     anchors {
@@ -57,7 +58,27 @@ PanelWindow {
             anchors.rightMargin: Theme.padding
             spacing: Theme.spacing
 
-            // Left: this screen's workspaces, then the window title chip
+            // Left: the launcher button, then this screen's workspaces,
+            // then the window title chip
+            Rectangle {
+                id: launchBtn
+                implicitWidth: Theme.chipHeight
+                implicitHeight: Theme.chipHeight
+                radius: height / 2
+                color: root.launcherOpen ? Theme.primary : Theme.surfaceContainerHigh
+                Text {
+                    anchors.centerIn: parent
+                    text: "󰀄"
+                    color: root.launcherOpen ? Theme.textOnPrimary : Theme.primary
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSize
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: Ui.toggleLauncher(root.screenName)
+                }
+            }
             Workspaces {
                 // null-guard: modelData lands shortly after creation
                 screenName: root.modelData ? root.modelData.name : ""

@@ -2,6 +2,8 @@
 //@ pragma UseQApplication
 import QtQuick
 import Quickshell
+import Quickshell.Io
+import Quickshell.Hyprland
 import "widgets"
 
 // Basalt shell root — one identical bar per screen; workspaces are
@@ -9,6 +11,20 @@ import "widgets"
 // itself — do NOT redeclare them inline here (shadowing breaks the
 // Variants injection).
 ShellRoot {
+    // Launcher IPC — `qs ipc call launcher toggle` from the Hyprland
+    // keybind. Opens on the focused monitor (house per-screen rule).
+    IpcHandler {
+        target: "launcher"
+
+        function toggle() {
+            const focused = Hyprland.focusedMonitor
+                ? Hyprland.focusedMonitor.name : "";
+            if (focused !== "") {
+                Ui.toggleLauncher(focused);
+            }
+        }
+    }
+
     // Click-catcher — created first so it maps at the BOTTOM of the
     // layer: bars and popups always stack above it. Its MouseArea is
     // active only while a popup is open — desktop clicks close any open
@@ -26,6 +42,14 @@ ShellRoot {
 
         delegate: Component {
             NotificationToasts {}
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        delegate: Component {
+            Launcher {}
         }
     }
 
