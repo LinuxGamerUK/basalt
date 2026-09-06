@@ -75,7 +75,7 @@ Rectangle {
                 Component.onCompleted: value = MixerState.sinkVolume
 
                 onPressed: console.log("sinkSlider PRESSED at", value)
-                onReleased: console.log("sinkSlider RELEASED at", value)
+                onPressedChanged: if (!pressed) console.log("sinkSlider RELEASED at", value)
 
                 Connections {
                     target: MixerState
