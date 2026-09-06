@@ -85,6 +85,12 @@ Singleton {
         const base = wp !== ""
             ? ["matugen", "image", wp, "--prefer", "closest-to-fallback"]
             : ["matugen", "color", "hex", (settings.sourceColor || sourceColor)];
+        if (matugenProc.running) {
+            // Busy — re-run when the current generation finishes, so a
+            // wallpaper picked mid-refresh is never lost.
+            root.refreshQueued = true;
+            return;
+        }
         matugenProc.command = base.concat(["-c", cfg]);
         broadcastProc.command = base.concat(["-c", broadcast]);
         matugenProc.running = true;
@@ -135,9 +141,21 @@ Singleton {
                 }
             }
         }
+        onExited: {
+            if (root.refreshQueued) {
+                root.refreshQueued = false;
+                root.refresh();
+            }
+        }
     }
 
     // Settings writer — merges one key into settings.json (python3, local).
+    // Operations are SERIALIZED: a write/apply/refresh landing while its
+    // process is busy gets queued, not dropped (quickshell ignores
+    // running=true on a busy Process).
+    property var writeQueue: []
+    property bool refreshQueued: false
+
     Process {
         id: writeProc
         property string key: ""
@@ -149,6 +167,10 @@ Singleton {
                 root.onSettingsSaved = null;
                 f();
             }
+            if (root.writeQueue.length > 0) {
+                const next = root.writeQueue.shift();
+                root.runWrite(next.key, next.value, next.then);
+            }
         }
     }
 
@@ -156,9 +178,22 @@ Singleton {
     Process {
         id: wallProc
         stdout: StdioCollector {}
+        onExited: {
+            if (root.wallQueue.length > 0) {
+                const path = root.wallQueue.shift();
+                root.runWallpaper(path);
+            }
+        }
+    }
+    property var wallQueue: []
+
+    function runWallpaper(path) {
+        const script = Qt.resolvedUrl("scripts/set-wallpaper.sh").toString().replace(/^file:\/\//, "");
+        wallProc.command = ["bash", script, path, settings.wallpaper || ""];
+        wallProc.running = true;
     }
 
-    function saveSetting(key, value, then) {
+    function runWrite(key, value, then) {
         root.onSettingsSaved = then || null;
         writeProc.key = key;
         writeProc.value = value;
@@ -176,10 +211,20 @@ Singleton {
         writeProc.running = true;
     }
 
+    function saveSetting(key, value, then) {
+        if (writeProc.running) {
+            root.writeQueue.push({ key: key, value: value, then: then });
+            return;
+        }
+        runWrite(key, value, then);
+    }
+
     function applyWallpaperFile(path) {
-        const script = Qt.resolvedUrl("scripts/set-wallpaper.sh").toString().replace(/^file:\/\//, "");
-        wallProc.command = ["bash", script, path, settings.wallpaper || ""];
-        wallProc.running = true;
+        if (wallProc.running) {
+            root.wallQueue.push(path);
+            return;
+        }
+        runWallpaper(path);
     }
 
     // From the picker: persist, apply through hyprpaper, regenerate the

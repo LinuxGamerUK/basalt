@@ -12,7 +12,9 @@ set -g fish_color_end {{colors.secondary.default.hex}}
 set -g fish_color_comment {{colors.outline.default.hex}}
 set -g fish_color_selection --background={{colors.surface_container.default.hex}}
 set -g fish_color_search_match --background={{colors.surface_container_high.default.hex}}
-set -g fish_color_autosuggestion {{colors.outline.default.hex}}
+# Ghost text: clearly dimmer than typed text (normal) so suggestions
+# can never be mistaken for input.
+set -g fish_color_autosuggestion {{colors.outline_variant.default.hex}}
 set -g fish_color_cwd {{colors.primary.default.hex}}
 set -g fish_color_user {{colors.primary.default.hex}}
 set -g fish_color_host {{colors.tertiary.default.hex}}
