@@ -13,8 +13,8 @@ ShellRoot {
     Variants {
         model: Quickshell.screens
 
-        delegate: ClickCatcher {
-            required property var modelData
+        delegate: Component {
+            ClickCatcher {}
         }
     }
 

@@ -10,7 +10,9 @@ import "root:/"
 PanelWindow {
     id: root
 
-    required property var modelData
+    // Set by Variants; non-required so a missing injection degrades
+    // gracefully instead of aborting creation (Bar's proven pattern).
+    property var modelData
     screen: modelData
 
     anchors {
