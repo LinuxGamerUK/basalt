@@ -46,7 +46,6 @@ Singleton {
 
     NotificationServer {
         id: server
-        enabled: true
         keepOnReload: true
 
         // Advertise what we render.
