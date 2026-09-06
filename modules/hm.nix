@@ -32,6 +32,10 @@ in
         Description = "Basalt desktop shell";
         After = [ cfg.systemdTarget ];
         PartOf = [ cfg.systemdTarget ];
+        # The shell may start before the compositor (e.g. default.target) —
+        # retry until the Wayland env is imported instead of tripping
+        # systemd's default 5-starts/10s limit.
+        StartLimitIntervalSec = 0;
       };
       Service = {
         ExecStart = "${cfg.package.passthru.quickshell}/bin/qs -p ${cfg.package}/share/basalt";
