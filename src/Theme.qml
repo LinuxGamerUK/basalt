@@ -38,18 +38,23 @@ Singleton {
     property color outlineVariant: "#2f2f3a"
 
     // ---- geometry ----
-    readonly property int barHeight: 44
-    readonly property int barMargin: 8
-    readonly property int barRadius: 22
-    readonly property int chipRadius: 14
-    readonly property int chipHeight: 30
-    readonly property int padding: 18
-    readonly property int spacing: 10
+    // Scale-aware: everything derives from uiScale (settings.json), so the
+    // whole shell expands/contracts for different resolutions/DPIs without
+    // touching any QML. Width is anchor-driven per screen (auto);
+    // height/chips/fonts scale here.
+    property real uiScale: 1.0
+    readonly property int barHeight: Math.round(44 * uiScale)
+    readonly property int barMargin: Math.round(8 * uiScale)
+    readonly property int barRadius: Math.round(22 * uiScale)
+    readonly property int chipRadius: Math.round(14 * uiScale)
+    readonly property int chipHeight: Math.round(30 * uiScale)
+    readonly property int padding: Math.round(18 * uiScale)
+    readonly property int spacing: Math.round(10 * uiScale)
 
     // ---- typography ----
-    // House rule: JetBrains Mono Nerd Font Propo, size 14 — everywhere.
+    // House rule: JetBrains Mono Nerd Font Propo — base 14pt, scaled.
     readonly property string fontFamily: "JetBrainsMono Nerd Font Propo"
-    readonly property int fontSize: 14
+    readonly property int fontSize: Math.round(14 * uiScale)
 
     // ---- theming source ----
     property string sourceColor: "#4fd8e0"
@@ -91,6 +96,10 @@ Singleton {
                     root.settings = JSON.parse(this.text);
                 } catch (e) {
                     root.settings = {};
+                }
+                // Resolution scaling — applies live, geometry rebinds.
+                if (typeof root.settings.uiScale === "number") {
+                    root.uiScale = root.settings.uiScale;
                 }
                 root.refresh();
                 // Persisted wallpaper — applied at every shell start, i.e.

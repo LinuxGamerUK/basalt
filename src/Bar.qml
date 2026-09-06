@@ -56,9 +56,10 @@ PanelWindow {
                 screenName: root.modelData ? root.modelData.name : ""
             }
             WindowTitle {
-                Layout.fillWidth: true
-                // Stop short of the center-locked clock (clock center =
-                // bar center; half-width ~90 + gap).
+                // Sized to content, hard-capped so it can never reach the
+                // center-locked clock. NO fillWidth — the spacer below is
+                // the single flexible element (that's what pins the right
+                // cluster to the right edge on any width).
                 Layout.maximumWidth: root.width / 2 - 300
             }
 
@@ -74,12 +75,11 @@ PanelWindow {
                 implicitWidth: Theme.chipHeight
                 implicitHeight: Theme.chipHeight
                 radius: height / 2
-                // TEMP: loud fill so the button's position is obvious
-                color: "#ff00ff"
+                color: root.pickerOpen ? Theme.primary : Theme.surfaceContainerHigh
                 Text {
                     anchors.centerIn: parent
                     text: "\uf03e"
-                    color: Theme.text
+                    color: root.pickerOpen ? Theme.textOnPrimary : Theme.text
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSize
                 }
@@ -109,8 +109,8 @@ PanelWindow {
         anchor.rect.x: Math.max(8, (root.width / 2) - 165)
         anchor.rect.y: Theme.barHeight + Theme.barMargin
         visible: root.calendarOpen
-        implicitWidth: 330
-        implicitHeight: 390
+        implicitWidth: Math.round(330 * Theme.uiScale)
+        implicitHeight: Math.round(390 * Theme.uiScale)
         color: "transparent"
 
         Calendar {
@@ -127,8 +127,8 @@ PanelWindow {
         anchor.rect.x: Math.max(8, root.width - 676)
         anchor.rect.y: Theme.barHeight + Theme.barMargin
         visible: root.pickerOpen
-        implicitWidth: 660
-        implicitHeight: 480
+        implicitWidth: Math.round(660 * Theme.uiScale)
+        implicitHeight: Math.round(480 * Theme.uiScale)
         color: "transparent"
 
         WallpaperPicker {
