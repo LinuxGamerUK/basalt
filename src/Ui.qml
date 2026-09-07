@@ -21,12 +21,14 @@ Singleton {
     property string mixerScreen: ""
     property string brightnessScreen: ""
     property string networkScreen: ""
+    property string settingsScreen: ""
 
     readonly property bool anythingOpen: pickerScreen !== "" || calendarScreen !== ""
         || notificationsScreen !== "" || launcherScreen !== "" || mixerScreen !== ""
-        || brightnessScreen !== "" || networkScreen !== ""
+        || brightnessScreen !== "" || networkScreen !== "" || settingsScreen !== ""
 
     function togglePicker(screen) {
+        settingsScreen = "";
         calendarScreen = "";
         notificationsScreen = "";
         launcherScreen = "";
@@ -37,6 +39,7 @@ Singleton {
     }
 
     function toggleCalendar(screen) {
+        settingsScreen = "";
         pickerScreen = "";
         notificationsScreen = "";
         launcherScreen = "";
@@ -47,6 +50,7 @@ Singleton {
     }
 
     function toggleNotifications(screen) {
+        settingsScreen = "";
         pickerScreen = "";
         calendarScreen = "";
         launcherScreen = "";
@@ -57,6 +61,7 @@ Singleton {
     }
 
     function toggleLauncher(screen) {
+        settingsScreen = "";
         pickerScreen = "";
         calendarScreen = "";
         notificationsScreen = "";
@@ -67,6 +72,7 @@ Singleton {
     }
 
     function toggleMixer(screen) {
+        settingsScreen = "";
         pickerScreen = "";
         calendarScreen = "";
         notificationsScreen = "";
@@ -77,6 +83,7 @@ Singleton {
     }
 
     function toggleBrightness(screen) {
+        settingsScreen = "";
         pickerScreen = "";
         calendarScreen = "";
         notificationsScreen = "";
@@ -87,6 +94,7 @@ Singleton {
     }
 
     function toggleNetwork(screen) {
+        settingsScreen = "";
         pickerScreen = "";
         calendarScreen = "";
         notificationsScreen = "";
@@ -94,6 +102,17 @@ Singleton {
         mixerScreen = "";
         brightnessScreen = "";
         root.networkScreen = (root.networkScreen === screen) ? "" : screen;
+    }
+
+    function toggleSettings(screen) {
+        pickerScreen = "";
+        calendarScreen = "";
+        notificationsScreen = "";
+        launcherScreen = "";
+        mixerScreen = "";
+        brightnessScreen = "";
+        networkScreen = "";
+        root.settingsScreen = (root.settingsScreen === screen) ? "" : screen;
     }
 
     function closeAll() {
@@ -104,5 +123,6 @@ Singleton {
         mixerScreen = "";
         brightnessScreen = "";
         networkScreen = "";
+        settingsScreen = "";
     }
 }

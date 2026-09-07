@@ -60,6 +60,10 @@ Singleton {
     // ---- theming source ----
     property string sourceColor: "#4fd8e0"
     property var settings: ({})
+    // Appearance/extension toggles — persisted in settings.json via
+    // saveSetting, applied live.
+    property bool transparentBar: false
+    property bool emberEnabled: false
 
     function applyPalette(p) {
         if (!p) return;
@@ -134,6 +138,8 @@ Singleton {
                 if (typeof root.settings.uiScale === "number") {
                     root.uiScale = root.settings.uiScale;
                 }
+                root.transparentBar = root.settings.transparentBar === "true";
+                root.emberEnabled = root.settings.emberEnabled === "true";
                 root.refresh();
                 // Persisted wallpaper — applied at every shell start, i.e.
                 // at login / Hyprland launch. This is the default-wallpaper
@@ -224,6 +230,16 @@ Singleton {
             Quickshell.env("HOME") + "/.config/basalt/settings.json",
             key, value];
         writeProc.running = true;
+    }
+
+    function setTransparentBar(on) {
+        root.transparentBar = on;
+        root.saveSetting("transparentBar", on ? "true" : "false");
+    }
+
+    function setEmberEnabled(on) {
+        root.emberEnabled = on;
+        root.saveSetting("emberEnabled", on ? "true" : "false");
     }
 
     function saveSetting(key, value, then) {

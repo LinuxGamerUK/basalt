@@ -28,6 +28,7 @@ PanelWindow {
     readonly property bool mixerOpen: Ui.mixerScreen === root.screenName
     readonly property bool brightnessOpen: Ui.brightnessScreen === root.screenName
     readonly property bool networkOpen: Ui.networkScreen === root.screenName
+    readonly property bool settingsOpen: Ui.settingsScreen === root.screenName
     readonly property string screenName: root.modelData ? root.modelData.name : ""
 
     // Network chip state — the connected device, its type, and the
@@ -65,10 +66,12 @@ PanelWindow {
         id: pill
         anchors.fill: parent
         radius: Theme.barRadius
-        color: Theme.surface
-        opacity: 0.92
-        border.width: 1
-        border.color: Theme.outlineVariant
+        // Transparent mode: the bar surface vanishes, the widget pills
+        // become accent-colored islands.
+        color: Theme.transparentBar ? Qt.rgba(0, 0, 0, 0) : Theme.surface
+        opacity: Theme.transparentBar ? 1.0 : 0.92
+        border.width: Theme.transparentBar ? 0 : 1
+        border.color: Theme.transparentBar ? Qt.rgba(0, 0, 0, 0) : Theme.outlineVariant
 
         RowLayout {
             anchors.fill: parent
@@ -150,7 +153,10 @@ PanelWindow {
                 implicitHeight: Theme.chipHeight - 6
                 radius: height / 2
                 color: mouse.containsMouse
-                    ? Theme.surfaceContainerHigh : "transparent"
+                    ? (Theme.transparentBar
+                        ? Qt.alpha(Theme.primary, 0.35)
+                        : Theme.surfaceContainerHigh)
+                    : "transparent"
 
                 RowLayout {
                     anchors.fill: parent
@@ -254,23 +260,27 @@ PanelWindow {
                 implicitWidth: Theme.spacing
             }
 
+            // Settings chip — power, appearance, extensions, wallpaper.
             Rectangle {
-                id: wallBtn
+                id: settingsChip
                 implicitWidth: Theme.chipHeight
                 implicitHeight: Theme.chipHeight
                 radius: height / 2
-                color: root.pickerOpen ? Theme.primary : Theme.surfaceContainerHigh
+                color: root.settingsOpen ? Theme.primary
+                    : (Theme.transparentBar ? Qt.alpha(Theme.primary, 0.55)
+                        : Theme.surfaceContainerHigh)
                 Text {
                     anchors.centerIn: parent
-                    text: "\uf03e"
-                    color: root.pickerOpen ? Theme.textOnPrimary : Theme.text
+                    text: "\uf013"
+                    color: root.settingsOpen
+                        ? Theme.textOnPrimary : Theme.text
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSize
                 }
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: Ui.togglePicker(root.screenName)
+                    onClicked: Ui.toggleSettings(root.screenName)
                 }
             }
             // Network chip — the connection state, click opens the
@@ -281,7 +291,10 @@ PanelWindow {
                 implicitHeight: Theme.chipHeight
                 radius: height / 2
                 color: root.networkOpen
-                    ? Theme.primary : Theme.surfaceContainerHigh
+                    ? Theme.primary
+                    : (Theme.transparentBar
+                        ? Qt.alpha(Theme.primary, 0.55)
+                        : Theme.surfaceContainerHigh)
 
                 Text {
                     anchors.centerIn: parent
@@ -307,7 +320,10 @@ PanelWindow {
                 implicitHeight: Theme.chipHeight
                 radius: height / 2
                 color: root.notificationsOpen
-                    ? Theme.primary : Theme.surfaceContainerHigh
+                    ? Theme.primary
+                    : (Theme.transparentBar
+                        ? Qt.alpha(Theme.primary, 0.55)
+                        : Theme.surfaceContainerHigh)
 
                 Text {
                     anchors.centerIn: parent
@@ -517,6 +533,31 @@ PanelWindow {
         color: Qt.rgba(0, 0, 0, 0)
 
         BrightnessPanel {
+            anchors.fill: parent
+        }
+    }
+
+    // Basalt settings — power, appearance, extensions, wallpaper.
+    PanelWindow {
+        id: settingsPopup
+        screen: root.modelData
+        anchors {
+            top: true
+            right: true
+        }
+        aboveWindows: true
+        focusable: false
+        exclusiveZone: -1
+        margins {
+            top: Math.round(Theme.barHeight + Theme.barMargin * 2)
+            right: Math.round(8 * Theme.uiScale)
+        }
+        implicitWidth: Math.round(340 * Theme.uiScale)
+        implicitHeight: Math.round(420 * Theme.uiScale)
+        visible: root.settingsOpen
+        color: Qt.rgba(0, 0, 0, 0)
+
+        SettingsPanel {
             anchors.fill: parent
         }
     }

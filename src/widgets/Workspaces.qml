@@ -115,7 +115,10 @@ RowLayout {
             //   active       → primary fill
             //   has windows  → secondary border (content present elsewhere)
             //   empty/missing→ plain outline
-            color: isActive ? Theme.primary : Theme.surfaceContainerHigh
+            color: isActive ? Theme.primary
+                : (Theme.transparentBar
+                    ? Qt.alpha(Theme.primary, 0.45)
+                    : Theme.surfaceContainerHigh)
             border.width: !isActive && hasWindows ? 4 : 1
             border.color: isActive
                 ? Theme.primary
@@ -124,7 +127,8 @@ RowLayout {
             Text {
                 anchors.centerIn: parent
                 text: parent.modelData % 10
-                color: parent.isActive ? Theme.textOnPrimary : Theme.textSecondary
+                color: (parent.isActive || Theme.transparentBar)
+                    ? Theme.textOnPrimary : Theme.textSecondary
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSize
                 font.bold: parent.isActive
