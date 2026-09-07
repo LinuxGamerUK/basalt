@@ -14,6 +14,7 @@ Rectangle {
     property real from: 0
     property real to: 1
     property bool muted: false
+    property string objectName: ""
     readonly property bool pressed: ma.pressed
     signal moved(real value)
 
@@ -59,8 +60,18 @@ Rectangle {
         anchors.margins: -6   // forgiving grab zone
         cursorShape: Qt.PointingHandCursor
         hoverEnabled: true
-        onPressed: (mouse) => root._apply(mouse.x)
-        onPositionChanged: (mouse) => { if (pressed) root._apply(mouse.x); }
+        onPressed: (mouse) => {
+            console.log("vslider[" + (root.objectName || "?") + "] press",
+                "local", mouse.x.toFixed(0) + "," + mouse.y.toFixed(0));
+            root._apply(mouse.x);
+        }
+        onPositionChanged: (mouse) => {
+            if (pressed) {
+                console.log("vslider[" + (root.objectName || "?") + "] drag",
+                    mouse.x.toFixed(0) + "," + mouse.y.toFixed(0));
+                root._apply(mouse.x);
+            }
+        }
     }
 
     function _apply(localX) {

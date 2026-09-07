@@ -15,6 +15,16 @@ Rectangle {
     border.color: Theme.outlineVariant
     border.width: 1
 
+    // DEBUG (non-consuming): where do presses/hover land on this panel.
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.NoButton
+        hoverEnabled: true
+        onPositionChanged: (mouse) => console.log("mixer surface pointer at",
+            mouse.x.toFixed(0) + "," + mouse.y.toFixed(0),
+            mouse.buttons & Qt.LeftButton ? "held" : "up")
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 14
