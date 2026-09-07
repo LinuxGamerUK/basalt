@@ -105,8 +105,10 @@ Singleton {
 
     function setBrightness(level) {
         const v = Math.round(Math.max(0, Math.min(1, level)) * 100);
-        brightSet.command = ["bash", "-c",
-            "brightnessctl -e4 -n2 set " + v + "%"];
+        // Plain linear set — the old -e4 (exponent-4 percentage curve)
+        // made "50%" write 0.5^4 = 6% to the sysfs, so the panel's echo
+        // never matched the dragged value and the handle snapped back.
+        brightSet.command = ["brightnessctl", "set", v + "%"];
         brightSet.running = true;
     }
 

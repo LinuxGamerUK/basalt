@@ -266,50 +266,8 @@ Rectangle {
             color: Theme.outlineVariant
         }
 
-        // Brightness
-        Text {
-            text: "BRIGHTNESS"
-            color: Theme.textSecondary
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSize
-            font.bold: true
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 10
-
-            Text {
-                text: "󰃟"
-                color: Theme.primary
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSize
-            }
-
-            VolumeSlider {
-                id: brightSlider
-                Layout.fillWidth: true
-                Layout.preferredHeight: 24
-                value: MixerState.brightnessLevel
-                onMoved: MixerState.setBrightness(value)
-
-                Connections {
-                    target: MixerState
-                    function onBrightnessLevelChanged() {
-                        if (!brightSlider.pressed)
-                            brightSlider.value = MixerState.brightnessLevel;
-                    }
-                }
-            }
-
-            Text {
-                text: Math.round(MixerState.brightnessLevel * 100) + "%"
-                color: Theme.text
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSize
-                Layout.preferredWidth: 40
-                horizontalAlignment: Text.AlignRight
-            }
-        }
+        // Brightness lives in the standalone sun panel (sun→sun house
+        // rule) — the mixer's copy sat below the fold of the device
+        // lists, unreachable and confusing.
     }
 }
