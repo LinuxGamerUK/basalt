@@ -556,6 +556,26 @@ class Bridge:
         if fresh != self._published:
             self.emit_state()
 
+    def active_mode(self, dev):
+        i = dev["activeMode"]
+        if not 0 <= i < len(dev["modes"]):
+            raise CommandError("%s has no active mode" % dev["name"])
+        return dev["modes"][i]
+
+    def pick_color_mode(self, dev):
+        """A mode that can hold a color, preferring the active one."""
+        active = self.active_mode(dev)
+        if active["acceptsColor"]:
+            return active
+        by_name = {m["name"].strip().lower(): m for m in dev["modes"] if m["acceptsColor"]}
+        for name in COLOR_MODE_PREFERENCE:
+            if name in by_name:
+                return by_name[name]
+        for m in dev["modes"]:
+            if m["acceptsColor"]:
+                return m
+        raise CommandError("%s has no mode that takes a color" % dev["name"])
+
     def set_color(self, dev, color, zone=None):
         mode = self.active_mode(dev)
         if not mode["acceptsColor"]:
