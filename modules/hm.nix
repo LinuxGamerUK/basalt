@@ -70,8 +70,13 @@ in
       };
       Service = {
         ExecStart = "${pkgs.hyprpaper}/bin/hyprpaper";
-        Restart = "on-failure";
-        RestartSec = 2;
+        # always, not on-failure: at boot hyprpaper starts before any
+        # compositor exists and exits CLEANLY (no Wayland display), which
+        # on-failure never restarts — the wallpaper daemon was then gone
+        # for the entire session. Restart=always keeps retrying until the
+        # session appears, then stays.
+        Restart = "always";
+        RestartSec = 3;
       };
       Install = {
         WantedBy = [ cfg.systemdTarget ];
