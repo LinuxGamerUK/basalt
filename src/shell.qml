@@ -39,6 +39,18 @@ ShellRoot {
         }
     }
 
+    // Brightness IPC — `basalt-ipc brightness set <level 0-1>`: drives
+    // the same serialized queue the panel drag uses. Also the hook for
+    // XF86MonBrightness keybinds later.
+    IpcHandler {
+        target: "brightness"
+
+        function set(level: string): void {
+            const v = parseFloat(level);
+            if (!isNaN(v)) MixerState.setBrightness(v);
+        }
+    }
+
     // Click-catcher — created first so it maps at the BOTTOM of the
     // layer: bars and popups always stack above it. Its MouseArea is
     // active only while a popup is open — desktop clicks close any open
