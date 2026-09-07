@@ -41,6 +41,7 @@ Rectangle {
 
             VolumeSlider {
                 id: brightSlider
+                objectName: "brightness"
                 Layout.fillWidth: true
                 Layout.preferredHeight: 24
                 value: MixerState.brightnessLevel

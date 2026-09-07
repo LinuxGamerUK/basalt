@@ -59,6 +59,7 @@ Rectangle {
 
             VolumeSlider {
                 id: sinkSlider
+                objectName: "sink"
                 Layout.fillWidth: true
                 Layout.preferredHeight: 24
                 value: MixerState.sinkVolume
@@ -130,6 +131,7 @@ Rectangle {
 
             VolumeSlider {
                 id: sourceSlider
+                objectName: "source"
                 Layout.fillWidth: true
                 Layout.preferredHeight: 24
                 value: MixerState.sourceVolume

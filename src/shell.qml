@@ -49,6 +49,14 @@ ShellRoot {
             const v = parseFloat(level);
             if (!isNaN(v)) MixerState.setBrightness(v);
         }
+
+        function toggle(): void {
+            const focused = Hyprland.focusedMonitor
+                ? Hyprland.focusedMonitor.name : "";
+            if (focused !== "") {
+                Ui.toggleBrightness(focused);
+            }
+        }
     }
 
     // Click-catcher — created first so it maps at the BOTTOM of the

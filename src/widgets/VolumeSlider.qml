@@ -66,6 +66,11 @@ Rectangle {
     function _apply(localX) {
         const frac = Math.max(0, Math.min(1, localX / width));
         root.value = root.from + frac * (root.to - root.from);
+        console.log("vslider[" + (root.objectName || "?") + "] apply",
+            localX.toFixed(0) + "/" + width.toFixed(0),
+            "->", root.value.toFixed(2));
         root.moved(root.value);
     }
+
+    Component.onCompleted: objectName = "unnamed"
 }
