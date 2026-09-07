@@ -24,12 +24,18 @@ Item {
             onRead: data => {
                 var msg
                 try { msg = JSON.parse(String(data).trim()) } catch (e) { return }
-                if (msg.event === "state" && msg.connected && root.lastAccent !== "")
+                if (msg.event === "state" && msg.connected)
                     bridgeProc.write(JSON.stringify(
-                        { op: "sync_all", color: root.lastAccent, vivid: true }) + "\n")
+                        { op: "sync_all", color: Theme.primary.toString(),
+                          vivid: true }) + "\n")
             }
         }
         stderr: StdioCollector {}
+    }
+
+    Connections {
+        target: Theme
+        function onPrimaryChanged() { root.sync(Theme.primary.toString()) }
     }
 
     function sync(hex) {
