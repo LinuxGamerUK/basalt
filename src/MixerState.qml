@@ -101,13 +101,29 @@ Singleton {
     Process {
         id: brightSet
         stdout: StdioCollector {}
+        onExited: root.flushBrightness()
     }
 
+    // Serialized write queue: quickshell drops `running = true` on busy
+    // processes, and a slider drag fires setBrightness ~30x/s — every
+    // call after the first in a burst was silently lost, including the
+    // final release position, so the sysfs kept a stale value and the
+    // poll's echo yanked the handle away. Coalesce to the latest level
+    // and flush exactly one brightnessctl per process exit.
+    property real pendingBrightness: -1
+
     function setBrightness(level) {
-        const v = Math.round(Math.max(0, Math.min(1, level)) * 100);
-        // Plain linear set — the old -e4 (exponent-4 percentage curve)
-        // made "50%" write 0.5^4 = 6% to the sysfs, so the panel's echo
-        // never matched the dragged value and the handle snapped back.
+        root.pendingBrightness = Math.max(0, Math.min(1, level));
+        if (brightSet.running) return;
+        root.flushBrightness();
+    }
+
+    function flushBrightness() {
+        if (root.pendingBrightness < 0 || brightSet.running) return;
+        const v = Math.round(root.pendingBrightness * 100);
+        root.pendingBrightness = -1;
+        // Plain linear set — no exponent/min-value curves: the sysfs echo
+        // feeds the slider readback and must match the requested value.
         brightSet.command = ["brightnessctl", "set", v + "%"];
         brightSet.running = true;
     }
