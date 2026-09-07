@@ -32,7 +32,21 @@ PanelWindow {
     // (for input) but paint nothing.
     color: Qt.rgba(0, 0, 0, 0)
 
-    visible: Ui.anythingOpen
+    // ALWAYS mapped: layer z-order follows map order, and a visible-flip
+    // on the first popup open can map this surface AFTER the popup —
+    // putting the catcher on top and eating every press (fresh boots hit
+    // this race; mid-session restarts didn't). Mapped from shell start it
+    // is permanently the bottom-most surface. The input mask gates it:
+    // zero-size (all events pass through) until a popup opens, then the
+    // full screen (clicks close the popups).
+    visible: true
+
+    mask: Region {
+        x: 0
+        y: 0
+        width: Ui.anythingOpen ? root.width : 0
+        height: Ui.anythingOpen ? root.height : 0
+    }
 
     MouseArea {
         id: catcherMouse
