@@ -68,11 +68,4 @@ Item {
             if (Theme.emberEnabled) root.sendSync()
         }
     }
-
-    function sync(hex) {
-        lastAccent = hex
-        if (bridgeProc.running)
-            bridgeProc.write(JSON.stringify(
-                { op: "sync_all", color: hex, vivid: true }) + "\n")
-    }
 }
