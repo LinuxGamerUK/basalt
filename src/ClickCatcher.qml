@@ -32,16 +32,15 @@ PanelWindow {
     // (for input) but paint nothing.
     color: Qt.rgba(0, 0, 0, 0)
 
-    // ALWAYS mapped: layer z-order follows map order, and a visible-flip
-    // on the first popup open can map this surface AFTER the popup —
-    // putting the catcher on top and eating every press (fresh boots hit
-    // this race; mid-session restarts didn't). Mapped from shell start it
-    // is permanently the bottom-most surface. The input mask gates it:
-    // zero-size (all events pass through) until a popup opens, then the
-    // full screen (clicks close the popups).
+    // Always mapped so its layer-stacking position (created before the
+    // bars and popups) never changes — a visible-flip re-map would put
+    // it ABOVE popups and make them unclickable. The input mask gates
+    // it instead: zero-size (all events pass through) until a popup is
+    // open, then the full screen (clicks close the popups).
     visible: true
 
     mask: Region {
+        item: null
         x: 0
         y: 0
         width: Ui.anythingOpen ? root.width : 0
