@@ -679,7 +679,7 @@ class Bridge:
         if op == "profiles":
             self.refresh_profiles()
             return
-        if op == "set_all":
+        if op in ("set_all", "sync_all"):
             color = to_hex(*parse_hex(cmd.get("color")))
             if cmd.get("vivid") is True:
                 color = vivid_lift(color)
