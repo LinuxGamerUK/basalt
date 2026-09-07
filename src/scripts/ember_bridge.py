@@ -774,7 +774,7 @@ def coalesce(commands):
         op = str(cmd.get("op"))
         if op in ("set_color", "set_brightness", "set_speed"):
             key = (op, cmd.get("device"), cmd.get("zone"))
-        elif op == "set_all":
+        elif op in ("set_all", "sync_all"):
             key = (op,)
         else:
             key = ("__unique__", i)
