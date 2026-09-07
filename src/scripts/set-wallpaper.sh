@@ -29,6 +29,17 @@ if ! pgrep -x hyprpaper >/dev/null 2>&1; then
     done
 fi
 
+# The shell can start at boot before Hyprland exists (the systemd unit
+# retries until the Wayland env appears) — so HYPRLAND_INSTANCE_SIGNATURE
+# is often missing from the service environment. hyprctl cannot find the
+# compositor without it, and the wallpaper silently never applies. If
+# unset, discover the signature from the runtime dir (newest instance).
+if [ -z "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+    rt="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+    HYPRLAND_INSTANCE_SIGNATURE="$(ls -t "$rt/hypr" 2>/dev/null | head -1)"
+    export HYPRLAND_INSTANCE_SIGNATURE
+fi
+
 # Apply to every monitor currently present — dynamic, machine-agnostic.
 monitors="$(hyprctl monitors -j 2>/dev/null | python3 -c 'import json,sys; print("\n".join(m["name"] for m in json.load(sys.stdin)))')"
 if [ -z "$monitors" ]; then
