@@ -18,6 +18,7 @@ Item {
         id: bridgeProc
         command: ["python3", "-u", root.bridgePath,
                   "--host", "127.0.0.1", "--port", "6742"]
+        running: Theme.emberEnabled
         stdinEnabled: true
         stdout: SplitParser {
             splitMarker: "\n"
@@ -68,13 +69,8 @@ Item {
         }
     }
 
-    Connections {
-        target: Theme
-        function onPrimaryChanged() { root.sync(Theme.primary.toString()) }
-    }
-
     function sync(hex) {
-        root.lastAccent = hex
+        lastAccent = hex
         if (bridgeProc.running)
             bridgeProc.write(JSON.stringify(
                 { op: "sync_all", color: hex, vivid: true }) + "\n")
