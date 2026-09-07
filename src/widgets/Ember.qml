@@ -35,16 +35,16 @@ Item {
             }
         }
         stderr: StdioCollector {}
+    }
 
-        Timer {
-            id: resyncTimer
-            interval: 4000
-            repeat: true
-            triggeredOnStart: false
-            onTriggered: {
-                if (Theme.emberEnabled && bridgeProc.running)
-                    root.sendSync()
-            }
+    Timer {
+        id: resyncTimer
+        interval: 4000
+        repeat: true
+        triggeredOnStart: false
+        onTriggered: {
+            if (Theme.emberEnabled && bridgeProc.running)
+                root.sendSync()
         }
     }
 
