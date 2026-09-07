@@ -10,6 +10,9 @@ import "root:/"
 Rectangle {
     id: root
 
+    // Set by the Bar's panel — the screen whose gear chip opened us.
+    property string screenName: ""
+
     color: Theme.surfaceContainer
     radius: 20
     border.color: Theme.outlineVariant
@@ -115,9 +118,10 @@ Rectangle {
 
         Text {
             anchors.centerIn: parent
-            text: root.armedAction === pbox.action && pbox.needsConfirm
+            text: root.armedAction === pbtn.action && pbtn.needsConfirm
                 ? "Confirm?" : pbtn.label
-            color: root.armedAction === p.action ? Theme.errorColor : Theme.text
+            color: root.armedAction === pbtn.action
+                ? Theme.errorColor : Theme.text
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSize - 2
         }

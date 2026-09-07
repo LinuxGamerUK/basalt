@@ -558,6 +558,7 @@ PanelWindow {
         color: Qt.rgba(0, 0, 0, 0)
 
         SettingsPanel {
+            screenName: root.screenName
             anchors.fill: parent
         }
     }
