@@ -71,6 +71,9 @@ ShellRoot {
         }
     }
 
+    // Ember — OpenRGB theme sync, one per shell (the sync is global).
+    Ember {}
+
     Variants {
         model: Quickshell.screens
 
