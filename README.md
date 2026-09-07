@@ -50,7 +50,10 @@ Basalt has a short, non-negotiable list of rules:
   click-to-open: the volume chip opens a mixer panel (output/input
   sliders with mute, clickable device lists to switch default sinks and
   sources), the brightness chip opens its own compact slider panel; a
-  2-second OSD reacts to the media keys from any source
+  2-second OSD reacts to the media keys from any source. Sliders are
+  custom MouseArea-based controls with full drag support, serialized
+  brightness writes, and echo-safe value sync
+  (`basalt-ipc brightness set <0-1>` drives the same path)
 - **Audio visualizer** — a 24-bar CAVA spectrum in the bar, reading the
   default sink's monitor through PipeWire, theme-following
 - **Notification center** — Basalt *is* the system notification daemon
@@ -58,9 +61,10 @@ Basalt has a short, non-negotiable list of rules:
   top-right, a bell with an unread badge, and a history panel with
   clear-all and per-item dismiss. Discord, Brave, anything sending D-Bus
   notifications lands in it
-- **System tray** — StatusNotifierItems rendered via the icon provider,
-  left/middle/right click semantics (activate, secondary-activate, D-Bus
-  menus as native popups)
+- **System tray** — leftmost of the right-hand cluster (system chips,
+  then the panel buttons); StatusNotifierItems rendered via the icon
+  provider, left/middle/right click semantics (activate,
+  secondary-activate, D-Bus menus as native popups)
 - **Network** — a bar chip showing the connection state (ethernet/wifi
   icons, accent when connected), and a panel with the device state, the
   current SSID, and the live wifi scan with signal strength, security
@@ -249,12 +253,21 @@ Bitten and learned the hard way — they are baked into Basalt's code:
 
 ## Roadmap
 
-- Lock screen (WlSessionLock + PAM)
-- Media popup (MPRIS)
+- PSK entry for connecting to new secured wifi networks from the panel
 
 ## Version history
 
-- **v0.3.2 — 2026-09-06** (this tag): network widget (bar chip with the
+- **v0.3.3 — 2026-09-07** (this tag): tray moved leftmost of the right
+  cluster with a breathing gap before the panel buttons; TTY login
+  auto-launches Hyprland; keybind exec binds use full paths (Hyprland's
+  exec env lacks ~/.local/bin); popup panels converted from PopupWindow
+  to PanelWindows with custom MouseArea-based sliders (full drag
+  support); serialized brightness write queue and linear brightnessctl
+  (the exponent curve broke the set/echo contract); hyprpaper
+  Restart=always and boot-time signature discovery so the wallpaper
+  survives the pre-compositor window; workspace self-heal made
+  continuous and single-bar; brightness + mixer IPC targets
+- **v0.3.2 — 2026-09-06**: network widget (bar chip with the
   connection-state icon, panel with the device state, the current SSID,
   and the live wifi scan; click-to-connect), network panel wifi scanner
   enablement, and popup text at the house 14pt standard across the
