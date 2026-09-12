@@ -55,8 +55,19 @@ RowLayout {
                 const vals = data.split(";")
                     .filter(v => v.length > 0)
                     .map(v => parseInt(v) || 0);
-                if (vals.length >= root.barCount) {
-                    root.bars = vals.slice(0, root.barCount);
+                // cava's raw-ASCII frame is the DFT magnitude of a real
+                // signal WITHOUT the Nyquist mirror stripped: bins 0..
+                // len/2 are the real low->high spectrum, len/2..len is
+                // the mirror (bass lands on BOTH ends). Take the first
+                // half and stretch it across the bar row.
+                if (vals.length >= 2) {
+                    const half = vals.slice(0, Math.ceil(vals.length / 2));
+                    const m = half.length / root.barCount;
+                    const out = [];
+                    for (let i = 0; i < root.barCount; i++) {
+                        out.push(half[Math.floor(i * m)] || 0);
+                    }
+                    root.bars = out;
                 }
             }
         }
