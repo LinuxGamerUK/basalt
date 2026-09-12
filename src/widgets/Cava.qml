@@ -24,21 +24,33 @@ RowLayout {
     Repeater {
         model: root.barCount
 
-        Rectangle {
+        // Each bar is a full-height cell; the visible segment is vertically
+        // centred and grows BOTH ways from the middle line (mirrored EQ).
+        Item {
             required property int index
 
-            width: 4
-            radius: 1.5
-            color: Theme.primary
-            opacity: 0.85
-            Layout.alignment: Qt.AlignBottom
-            height: 2 + Math.max(0, Math.min(1, (root.bars[index] || 0) / root.valueMax))
-                * (root.height - 2)
+            Layout.preferredWidth: 4
+            Layout.fillHeight: true
 
-            Behavior on height {
-                NumberAnimation {
-                    duration: 60
-                    easing.type: Easing.Linear
+            Rectangle {
+                anchors {
+                    horizontalCenter: parent.horizontalCenter
+                    verticalCenter: parent.verticalCenter
+                }
+                width: 4
+                radius: 1.5
+                color: Theme.primary
+                opacity: 0.85
+                // 2px stub at silence; symmetric growth up+down as the
+                // value climbs (total height = 2 * segment).
+                height: 2 + 2 * Math.max(0, Math.min(1, (root.bars[index] || 0) / root.valueMax))
+                    * ((root.height - 4) / 2)
+
+                Behavior on height {
+                    NumberAnimation {
+                        duration: 60
+                        easing.type: Easing.Linear
+                    }
                 }
             }
         }
