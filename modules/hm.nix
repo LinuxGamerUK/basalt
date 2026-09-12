@@ -29,8 +29,36 @@ in
     # and matugen regenerates the palette locally. Both live on PATH, as
     # does quickshell itself (qs/quickshell commands for interactive use —
     # the bar's unit uses the absolute store path).
-    home.packages = [ cfg.package pkgs.hyprpaper pkgs.matugen cfg.package.passthru.quickshell ];
+    # python3 + cava are module-owned script/widget dependencies: the shell
+    # QML spawns `python3` (wallpaper/theme/ember scripts) and cava spawns
+    # via the Cava.qml widget by bare name — on a bare NixOS user neither
+    # would resolve in the unit's fixed PATH (found live on the P1 and the
+    # Legion, 2026-09-12).
+    home.packages = [
+      cfg.package
+      pkgs.hyprpaper
+      pkgs.matugen
+      pkgs.python3
+      pkgs.cava
+      cfg.package.passthru.quickshell
+    ];
     home.file.".config/hypr/hyprpaper.conf".text = "";
+
+    # cava config: the Cava.qml widget spawns `cava -p ~/.config/cava/config`
+    # and plain cava exits on a missing config file — seed the raw-ASCII
+    # config the widget parses: 24 bars, `0;0;…` frames 0–1000.
+    home.file.".config/cava/config".text = ''
+      [general]
+      bars = 24
+
+      [output]
+      method = raw
+      data_format = ascii
+      bit_format = 8bit
+      ascii_max_range = 1000
+      bar_delimiter = 59
+      frame_delimiter = 10
+    '';
 
     systemd.user.services.basalt = {
       Unit = {
