@@ -71,7 +71,7 @@ class Agent(dbus.service.Object):
         # a headless agent — the alternative is unrecoverable pairing.
         return
 
-    @dbus.service.method(BLUEZ_SERVICE, in_signature="ou", out_signature="")
+    @dbus.service.method(BLUEZ_SERVICE, in_signature="o", out_signature="")
     def RequestAuthorization(self, device):
         return
 
