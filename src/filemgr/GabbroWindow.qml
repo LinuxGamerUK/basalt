@@ -1355,6 +1355,20 @@ FloatingWindow {
     Connections {
         target: GabbroState
 
+        function onPushSeqChanged() {
+            // Repeat pushes (same screen, already open) must land too.
+            if (GabbroState.screen !== root.screenName) return;
+            if (GabbroState.pendingPath.length > 0) {
+                root.openPath(GabbroState.pendingPath);
+                GabbroState.pendingPath = "";
+            }
+            if (GabbroState.pendingView.length > 0) {
+                if (GabbroState.pendingView === "columns") root.enterColumns();
+                else root.viewMode = GabbroState.pendingView;
+                GabbroState.pendingView = "";
+            }
+        }
+
         function onScreenChanged() {
             if (root.screenName.length === 0) return;
             if (GabbroState.screen === root.screenName) {

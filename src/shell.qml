@@ -85,6 +85,7 @@ ShellRoot {
             if (focused !== "") {
                 GabbroState.pendingPath = path;
                 GabbroState.screen = focused;
+                GabbroState.bumpSeq();
             }
         }
 
@@ -94,6 +95,7 @@ ShellRoot {
             if (focused !== "") {
                 GabbroState.pendingView = mode;
                 GabbroState.screen = focused;
+                GabbroState.bumpSeq();
             }
         }
     }

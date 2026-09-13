@@ -14,6 +14,9 @@ Singleton {
     // Remote-drive seams: a path queued to list; a view mode push.
     property string pendingPath: ""
     property string pendingView: ""
+    // Serial to re-notify on repeated identical pushes (same screen).
+    property int pushSeq: 0
+    function bumpSeq() { root.pushSeq += 1; }
 
     function toggle() {
         root.screen = "";
