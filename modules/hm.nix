@@ -118,12 +118,14 @@ in
         RestartSec = 3;
         # The scripts (basalt scripts/*, python3) resolve tools from PATH —
         # per-user profile carries this module's packages.
-        Environment = "PATH=%h/.local/bin:/etc/profiles/per-user/%u/bin:/run/current-system/sw/bin:/usr/bin:/bin";
-        # The flea backend resolves MIME/glob databases and the GIO
-        # application launcher by XDG_DATA_DIRS — %h/.nix-profile/share
-        # carries the module's shared-mime-info; run-current-system and
-        # the default profile close the rest.
-        Environment = "XDG_DATA_DIRS=%h/.nix-profile/share:/etc/profiles/per-user/%u/share:/run/current-system/sw/share:/nix/var/nix/profiles/default/share:/usr/local/share:/usr/share";
+        Environment = [
+          "PATH=%h/.local/bin:/etc/profiles/per-user/%u/bin:%h/.nix-profile/bin:/run/current-system/sw/bin:/usr/bin:/bin"
+          # The flea backend resolves MIME/glob databases and the GIO
+          # application launcher by XDG_DATA_DIRS — %h/.nix-profile/share
+          # carries this module's shared-mime-info; current-system and
+          # the default profile close the rest.
+          "XDG_DATA_DIRS=%h/.nix-profile/share:/etc/profiles/per-user/%u/share:/run/current-system/sw/share:/nix/var/nix/profiles/default/share:/usr/local/share:/usr/share"
+        ];
         # NOTE: never reload Hyprland's config from here (or anywhere).
         # Hyprland 0.56.2's lua-config keybinds (__lua chunk refs) go INERT
         # after any config reload — the binds stay registered but stop
