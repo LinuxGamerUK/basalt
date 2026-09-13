@@ -74,6 +74,7 @@ Item {
 
     // Read-only look at a directory that is NOT the current listing —
     // the columns view's home. Replies are one-shot snapshots.
+    signal peeked(string path, bool failed, int total, var rows)
     function peek(path, first, hidden) {
         root.send({ c: "peek", path: path, first: first, hidden: hidden });
     }
