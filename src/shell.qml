@@ -70,6 +70,10 @@ ShellRoot {
         function toggle() {
             FilesState.toggle();
         }
+
+        function dbg(): string {
+            return FilesState.diag.length > 0 ? FilesState.diag : "(no notes yet)";
+        }
     }
 
     // Files window — one FloatingWindow, created hidden; the backend
