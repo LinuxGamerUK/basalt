@@ -206,10 +206,14 @@ documented:
 - String dispatches through the IPC socket are wrapped unquoted into
   `hl.dispatch(...)` and fail to parse. Use raw `hl.dsp.*` expressions,
   e.g. `hyprctl dispatch 'hl.dsp.exit()'`.
-- `persistent = true` on `hl.workspace_rule` does not currently hold:
-  empty workspaces are reaped. Basalt's static layout renders missing
-  workspaces identically and materializes them on click, so the bar stays
-  correct regardless.
+- **Declare Basalt's workspace layout with `hl.workspace_rule`** — the
+  bar expects 1–5 on the primary screen and 6–10 on the external; rules
+  make that deterministic and let you skip the runtime self-heal.
+  Copy-paste blocks (Lua + classic conf): see
+  [examples/hyprland/workspace-rules.md](examples/hyprland/workspace-rules.md).
+- Earlier versions of Hyprland reaped empty `persistent = true`
+  workspaces under lua config; verified holding as of Hyprland 0.56.2
+  (empty pinned workspaces stay created after re-homing).
 - The Hyprland request socket accepts **one request per connection**.
 - Move a window and its destination workspace **atomically**
   (`window.move` with the workspace following, then pin the workspace
