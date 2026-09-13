@@ -859,7 +859,7 @@ FloatingWindow {
                                         Layout.fillWidth: true
                                         Layout.fillHeight: true
 
-                                        IconImage {
+                                        Image {
                                             anchors.fill: parent
                                             asynchronous: true
                                             fillMode: Image.PreserveAspectFit
@@ -938,7 +938,7 @@ FloatingWindow {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 140
 
-                            IconImage {
+                            Image {
                                 anchors.fill: parent
                                 fillMode: Image.PreserveAspectFit
                                 asynchronous: true
