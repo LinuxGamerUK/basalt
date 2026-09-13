@@ -267,10 +267,15 @@ Bitten and learned the hard way — they are baked into Basalt's code:
 ## Roadmap
 
 - Wifi PSK entry — ~~DONE 2026-09-13 (19b248e)~~
-- **File manager** — basalt's own Material 3 Quickshell frontend driving
-  flea's MIT Rust backend (newline-delimited JSON over stdin/stdout,
-  pinned upstream build). v1 floor: tabs, list/grid/columns views,
-  copy/move/rename/new-dir/trash, previews, search
+- **File manager (Files)** — basalt's own Material 3 Quickshell frontend
+  driving flea's MIT Rust backend (pinned upstream, `--backend` NDJSON
+  over stdin/stdout; pure std Rust). **Core live (f365921, validated on
+  the P1 canary):** list view, directory navigation, column-header
+  sorting (name/size/mtime, folders-first), hidden toggle, inline
+  rename (F2), trash (Delete), new folder with backend-free-name
+  handling, undo, copy/cut/paste, search walk (fuzzy, ranked).
+  Remaining v1 floor: grid + columns views, preview pane
+  (thumbnails/text/media), status polish
 - Final touches (end of project): lock screen (WlSessionLock + PAM),
   media popup (MPRIS)
 
