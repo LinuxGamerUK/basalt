@@ -7,7 +7,7 @@ import Quickshell.Widgets
 import "root:/"
 import "."
 
-// Basalt Files — Material 3 file-manager window over flea's backend.
+// Basalt Gabbro — Material 3 file-manager window over flea's backend.
 // The model is an integer count (flea's first load-bearing rule): the
 // view recycles viewport delegates and the held window is the only
 // file data in memory. v0.1 slice: list view, navigate, sort, hidden,
@@ -18,7 +18,7 @@ FloatingWindow {
     property var modelData
     screen: modelData
     readonly property string screenName: root.modelData ? root.modelData.name : ""
-    visible: FilesState.screen === root.screenName
+    visible: GabbroState.screen === root.screenName
     color: Theme.surfaceContainer
 
     implicitWidth: 1080
@@ -299,11 +299,11 @@ FloatingWindow {
     // own visibleChanged (reliable across quickshell builds). The FIRST
     // open lists HOME; later opens restore the last path.
     Connections {
-        target: FilesState
+        target: GabbroState
 
         function onScreenChanged() {
             if (root.screenName.length === 0) return;
-            if (FilesState.screen === root.screenName) {
+            if (GabbroState.screen === root.screenName) {
                 if (root.currentPath.length === 0) {
                     root.openPath(Quickshell.env("HOME") || "/");
                 }

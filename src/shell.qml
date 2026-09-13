@@ -61,33 +61,33 @@ ShellRoot {
         }
     }
 
-    // Files IPC — `qs ipc call files toggle` (works only when the
+    // Gabbro IPC — `qs ipc call gabbro toggle` (works only when the
     // basalt module has the file manager enabled: the window's backend
     // binary resolves `flea` from PATH).
     IpcHandler {
-        target: "files"
+        target: "gabbro"
 
         function toggle() {
             const focused = Hyprland.focusedMonitor
                 ? Hyprland.focusedMonitor.name : "";
             if (focused !== "") {
-                FilesState.toggleOnScreen(focused);
+                GabbroState.toggleOnScreen(focused);
             }
         }
 
         function dbg(): string {
-            return FilesState.diag.length > 0 ? FilesState.diag : "(no notes yet)";
+            return GabbroState.diag.length > 0 ? GabbroState.diag : "(no notes yet)";
         }
     }
 
-    // Files window — one per screen (house per-screen rule), created
+    // Gabbro window (the file manager) — one per screen (house per-screen rule), created
     // hidden; the backend process spawns on first open and drains on
-    // last close. Visibility is shared state via FilesState.
+    // last close. Visibility is shared state via GabbroState.
     Variants {
         model: Quickshell.screens
 
         delegate: Component {
-            FilesWindow {}
+            GabbroWindow {}
         }
     }
 

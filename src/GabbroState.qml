@@ -3,7 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 
-// Basalt Files — open state for the file-manager window (house rule:
+// Basalt Gabbro — open state for the file-manager window (house rule:
 // one window, on the focused screen, shared singleton state).
 Singleton {
     id: root
