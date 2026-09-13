@@ -16,6 +16,7 @@ Item {
     signal searching(int total, int scanned)
     signal searched(int total, bool cancelled)
     signal transferStarted(bool moving)
+    signal transferProgress(int index, string name, real bytes, real total)
     signal transferItem(string name, bool ok, string err)
     signal transferDone(bool cancelled)
     signal trashed(int ok, int failed)
@@ -24,11 +25,15 @@ Item {
     signal undone(bool ok)
     signal pathsReply(var paths)
     signal changed(string path)
+    // Preview facilities — thumbnails / directory sizes, one reply per named row.
+    signal thumbed(int row, string file)
+    signal dirsized(int row, real bytes)
 
-    // The listing directory's filesystem id (move vs copy on patches).
-    property int dirDev: 0
+    // Current sort order, set by accepted sorts (list resets to name asc).
+    property string sortBy: "name"
+    property bool sortDesc: false
 
-    // Single write author.
+    // Single write author — the protocol has exactly one.
     function send(obj) {
         const line = JSON.stringify(obj) + "\n";
         if (queueing) { pending.push(line); return; }
@@ -37,14 +42,32 @@ Item {
     }
 
     function list(path, first, hidden) {
-        root.hasListed = true;
+        root.sortBy = "name";
+        root.sortDesc = false;
         root.send({ c: "list", path: path, first: first, hidden: hidden,
-                    by: "name", desc: false, foldersFirst: true });
+                    by: root.sortBy, desc: root.sortDesc, foldersFirst: true });
     }
 
     function sort(by, desc) {
         root.send({ c: "sort", by: by, desc: desc, foldersFirst: true });
     }
+
+    function thumb(rows) {
+        if (rows.length === 0) return;
+        root.send({ c: "thumb", rows: rows });
+    }
+
+    function thumbcancel(rows) {
+        if (rows.length === 0) return;
+        root.send({ c: "thumbcancel", rows: rows });
+    }
+
+    function dirsize(rows) {
+        if (rows.length === 0) return;
+        root.send({ c: "dirsize", rows: rows });
+    }
+
+    function dirsizecancel() { root.send({ c: "dirsizecancel" }); }
 
     function window(start, count) {
         root.send({ c: "window", start: start, count: count });
@@ -129,6 +152,15 @@ Item {
             break;
         case "paths":
             root.pathsReply(m.paths || []);
+            break;
+        case "thumbed":
+            root.thumbed(m.row, m.file || "");
+            break;
+        case "dirsized":
+            root.dirsized(m.row, m.bytes || 0);
+            break;
+        case "transferprogress":
+            root.transferProgress(m.index, m.name, m.bytes, m.total);
             break;
         case "changed":
             root.changed(m.path || "");

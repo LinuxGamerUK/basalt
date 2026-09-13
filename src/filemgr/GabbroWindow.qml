@@ -2,56 +2,80 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
+import Quickshell._Window
 import Quickshell.Widgets
 
 import "root:/"
 import "."
 
-// Basalt Gabbro — Material 3 file-manager window over flea's backend.
-// The model is an integer count (flea's first load-bearing rule): the
-// view recycles viewport delegates and the held window is the only
-// file data in memory. v0.1 slice: list view, navigate, sort, hidden,
-// search, trash/rename/mkdir/undo.
+// Basalt Gabbro — a Material 3 file-manager window over flea's Rust
+// backend (FileBackend.qml, NDJSON protocol).
+//
+// Load-bearing rules inherited from flea (upstream AGENTS.md, MIT):
+// 1. The QML model is an INTEGER count, never a list — recycled
+//    viewport delegates only; the held window is all file data in use.
+// 2. `list` answers with the first screenful unasked; the client
+//    consumes the listed+rows pair before accepting the new window.
+// 3. Scroll drift outside the held window issues one coalesced
+//    `window` request; thumbnails and dir sizes ride the same settle
+//    gate (120 ms, flings issue nothing).
 FloatingWindow {
     id: root
+
+    visible: GabbroState.screen === root.screenName
+    color: Theme.surfaceContainer
+
+    implicitWidth: 1120
+    implicitHeight: 700
 
     property var modelData
     screen: modelData
     readonly property string screenName: root.modelData ? root.modelData.name : ""
-    visible: GabbroState.screen === root.screenName
-    color: Theme.surfaceContainer
-
-    implicitWidth: 1080
-    implicitHeight: 680
 
     // ── pane state ───────────────────────────────────────────────────
     property string currentPath: ""
     property int total: 0
     property int cursorIndex: 0
-    // The held backend window: rows cover [held, held + rows.length).
     property int held: 0
     property var rows: []
     property var kinds: []
     property bool showHidden: false
-    property bool showDetails: true
-    // Search walk: result rows name relative paths (backend rule).
+    property string sortKey: "name"
+    property bool sortDesc: false
+    property string viewMode: "list" // list | grid | columns(later)
     property bool searchMode: false
     property int searchScanned: 0
-    // Selection: absolute listing indices.
     property var selection: []
-    // The row acting as its own rename editor right now; -1 = off.
     property int renamingIndex: -1
     property string statusLine: ""
-    // Row to reveal by name after rename/mkdir replies.
     property string revealName: ""
 
-    readonly property real rowH: Theme.fontSize + 8
-    readonly property int visibleCount: Math.max(1, Math.ceil(view.height / rowH))
-    readonly property int windowSize: Math.min(600, visibleCount * 4 + 64)
-    // Rebuild the index bookkeeping whenever the listing data changes.
-    readonly property string listingStamp: JSON.stringify([total, held, rows, kinds])
-    onListingStampChanged: cursorIndex = Math.max(0, Math.min(cursorIndex, total - 1))
+    // Preview facilities. thumbs[row]: absent(unknown) | null(waiting) |
+    // ""(no thumbnail, terminal) | "path"(terminal). Same for dirSizes.
+    property var thumbs: ({})
+    property var dirSizes: ({})
 
+    // Tabs: pills of remembered paths; each stores path + cursor.
+    property var tabs: [{ path: "", cursor: 0 }]
+    property int tabIndex: 0
+    readonly property var curTab: root.tabs[root.tabIndex]
+
+    readonly property real rowH: Theme.fontSize + 8
+    readonly property real tileW: 108
+    readonly property real tileH: 108
+    readonly property int visibleCount: Math.max(1, Math.ceil(view.height / rowH))
+    readonly property int visibleTiles: Math.max(1, Math.ceil(view.width / tileW) * Math.ceil(view.height / tileH))
+    readonly property int windowSize: Math.min(600, Math.max(visibleCount, visibleTiles) * 4 + 100)
+    readonly property string listingStamp: JSON.stringify([total, held, rows, kinds])
+    onListingStampChanged: cursorIndex = Math.max(0, Math.min(cursorIndex, Math.max(0, total - 1)))
+
+    Component.onCompleted: {
+        if (visible && root.currentPath.length === 0) {
+            openPath(Quickshell.env("HOME") || "/");
+        }
+    }
+
+    // ── helpers ──────────────────────────────────────────────────────
     function baselineName(p) {
         const parts = (p || "").split("/").filter(Boolean);
         return parts.length ? parts[parts.length - 1] : "";
@@ -99,24 +123,60 @@ FloatingWindow {
         const d = new Date(ts * 1000);
         const pad = (n) => (n < 10 ? "0" : "") + n;
         return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate())
-            + " " + pad(d.getHours()) + ":" + pad(d.getMinutes())
+            + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
     }
 
     function setStatus(label) {
         root.statusLine = label;
     }
 
+    function rememberTab() {
+        if (root.tabs.length > root.tabIndex) {
+            const copy = root.tabs.slice();
+            copy[root.tabIndex] = { path: root.currentPath, cursor: root.cursorIndex + 0 };
+            root.tabs = copy;
+        }
+    }
+
+    function switchTab(i) {
+        if (i === root.tabIndex || i < 0 || i >= root.tabs.length) return;
+        rememberTab();
+        root.tabIndex = i;
+        root.revealName = "";
+        openPath(root.tabs[i].path || (Quickshell.env("HOME") || "/"));
+    }
+
+    function newTab() {
+        rememberTab();
+        root.tabs = root.tabs.concat([{ path: Quickshell.env("HOME") || "/", cursor: 0 }]);
+        root.tabIndex = root.tabs.length - 1;
+        openPath(root.tabs[root.tabIndex].path);
+    }
+
+    function closeTab(i) {
+        if (root.tabs.length <= 1) return; // never the last one
+        const copy = root.tabs.slice();
+        copy.splice(i, 1);
+        root.tabs = copy;
+        if (root.tabIndex >= root.tabs.length) root.tabIndex = root.tabs.length - 1;
+        if (root.tabIndex === i) openPath(root.tabs[root.tabIndex].path);
+    }
+
     // ── navigation + search ──────────────────────────────────────────
     function openPath(path) {
-        if (root.searchMode || searchRunning) engine.searchcancel();
+        if (searchRunning) engine.searchcancel();
         root.searchMode = false;
-        searchRunning = false;
+        root.searchRunning = false;
+        root.searchScanned = 0;
         searchInput.text = "";
         root.currentPath = path;
         pathField.text = path;
         root.cursorIndex = 0;
         root.revealName = "";
+        root.thumbs = {};
+        root.dirSizes = {};
         engine.list(path, Math.max(400, root.windowSize), root.showHidden);
+        rememberTab();
     }
 
     function refresh() {
@@ -139,6 +199,8 @@ FloatingWindow {
         root.searchScanned = 0;
         root.cursorIndex = 0;
         root.total = 0;
+        root.thumbs = {};
+        root.dirSizes = {};
         engine.search(root.currentPath, q, root.showHidden);
     }
 
@@ -147,6 +209,16 @@ FloatingWindow {
         root.searchMode = false;
         root.searchRunning = false;
         refresh();
+    }
+
+    function open(index) {
+        const row = root.rowFor(index);
+        if (row === null) return;
+        if (row.d) {
+            openPath(root.join(root.currentPath, row.n));
+        } else {
+            Qt.openUrlExternally(root.pathOf(index));
+        }
     }
 
     // ── selection ────────────────────────────────────────────────────
@@ -161,51 +233,33 @@ FloatingWindow {
 
     function clearSel() { root.selection = []; }
 
-    function selRows() { return root.selection.slice().sort((a, b) => a - b); }
-
     function focusIndex(index) {
         root.cursorIndex = Math.max(0, Math.min(index, root.total - 1));
         view.positionViewAtIndex(root.cursorIndex, ListView.Contain);
         windowTimer.restart();
     }
 
-    // ── windowing (flea rule 3) ──────────────────────────────────────
+    // ── windowing ────────────────────────────────────────────────────
     function requestWindow(force) {
         if (!engine.childRunning || root.total === 0) return;
         const first = Math.max(0, view.firstVisible - root.visibleCount);
-        const cover = root.held + root.rows.length - root.visibleCount;
-        // Filter-free v1: a view index IS a listing row.
+        const cover = root.held + root.rows.length - Math.max(1, root.visibleCount);
         if (force || first < root.held || first > cover) {
             engine.window(first, root.windowSize);
         }
     }
 
     // ── ops ──────────────────────────────────────────────────────────
-    function open(index) {
-        const row = root.rowFor(index);
-        if (row === null) return;
-        if (row.d) {
-            openPath(root.join(root.currentPath, row.n));
-        } else {
-            openFile(index);
-        }
-    }
-
-    function openFile(index) {
-        // v1: xdg-open the row's file; dedicated preview surfaces land later.
-        Qt.openUrlExternally(root.pathOf(index));
-    }
-
-
     function trashSelection() {
-        let rows = root.selRows();
-        if (rows.length === 0) { rows = [root.cursorIndex]; }
+        let rows = root.selection.slice().sort((a, b) => a - b);
+        if (rows.length === 0) rows = [root.cursorIndex];
         engine.trash(rows);
     }
 
     function renameStart(index) {
         const row = root.rowFor(index);
         if (row === null) return;
+        root.cursorIndex = index;
         root.renamingIndex = -1;
         root.cursorIndex = index;
         root.renamingIndex = index;
@@ -216,7 +270,7 @@ FloatingWindow {
         const idx = root.renamingIndex;
         const row = root.rowFor(idx);
         root.renamingIndex = -1;
-        if (!row) return;
+        if (!row || idx < 0) return;
         const from = row.n;
         const to = text.trim();
         if (to.length === 0 || to === from) return;
@@ -236,80 +290,94 @@ FloatingWindow {
 
     function undo() { engine.undo(); }
 
-    // ── clipboard (copy/cut/paste) ───────────────────────────────────
-    property string clipMode: ""
-
-    function clipCapture(mode) {
-        let rows = root.selRows();
-        if (rows.length === 0) rows = [root.cursorIndex];
-        clipPendingMode = mode;
-        engine.askPaths(rows);
-    }
-
-    property string clipPendingMode: ""
-
-    function pasteSelection() {
-        if (clipMode.length === 0 || !clipPaths) return;
-        const paths = clipPaths.slice();
-        engine.transfer(clipMode === "cut" ? "move" : "copy", paths, root.currentPath);
-        if (clipMode === "cut") { clipMode = ""; clipPaths = null; }
-    }
-
-    property var clipPaths: null
-
+    // ── keyboard ─────────────────────────────────────────────────────
     function handleKey(event) {
         if (root.renamingIndex >= 0) { event.accepted = true; return; }
-        if (event.key === Qt.Key_Down) focusIndex(cursorIndex + 1);
-        else if (event.key === Qt.Key_Up) focusIndex(cursorIndex - 1);
+        if (event.key === Qt.Key_Down) { if (viewMode === "list") focusIndex(cursorIndex + 1); }
+        else if (event.key === Qt.Key_Up && viewMode === "list") focusIndex(cursorIndex - 1);
         else if (event.key === Qt.Key_PageDown) focusIndex(cursorIndex + visibleCount);
         else if (event.key === Qt.Key_PageUp) focusIndex(cursorIndex - visibleCount);
         else if (event.key === Qt.Key_Home) focusIndex(0);
         else if (event.key === Qt.Key_End) focusIndex(total - 1);
-        else if (event.key === Qt.Key_Right) { if (!isDirRow(cursorIndex)) return; open(cursorIndex); }
-        else if (event.key === Qt.Key_Left || event.key === Qt.Key_Back) {
+        else if (event.key === Qt.Key_Back || event.key === Qt.Key_Left && searchMode) {
             if (searchMode) stopSearch(); else goUp();
         }
-        else if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return) open(cursorIndex);
+        else if (event.key === Qt.Key_Left && !searchMode) goUp();
+        else if (event.key === Qt.Key_Right || event.key === Qt.Key_Enter || event.key === Qt.Key_Return) open(cursorIndex);
         else if (event.key === Qt.Key_F2) renameStart(cursorIndex);
         else if (event.key === Qt.Key_Delete) { if (!searchMode) trashSelection(); }
         else if (event.key === Qt.Key_N && (event.modifiers & Qt.ControlModifier)) newFolder();
-        else if (event.key === Qt.Key_C && (event.modifiers & Qt.ControlModifier)) clipCapture("copy");
-        else if (event.key === Qt.Key_X && (event.modifiers & Qt.ControlModifier)) clipCapture("cut");
-        else if (event.key === Qt.Key_V && (event.modifiers & Qt.ControlModifier)) pasteSelection();
+        else if (event.key === Qt.Key_H && (event.modifiers & Qt.ControlModifier)) { showHidden = !showHidden; refresh(); }
         else if (event.key === Qt.Key_Z && (event.modifiers & Qt.ControlModifier)) undo();
-        else if (event.key === Qt.Key_H && (event.modifiers & Qt.ControlModifier)) {
-            showHidden = !showHidden; refresh();
-        }
+        else if (event.key === Qt.Key_T && (event.modifiers & Qt.ControlModifier)) { newTab(); event.accepted = true; }
+        else if (event.key === Qt.Key_W && (event.modifiers & Qt.ControlModifier)) { closeTab(tabIndex); event.accepted = true; }
         else if (event.key === Qt.Key_A && (event.modifiers & Qt.ControlModifier)) {
             const all = [];
             for (let i = 0; i < total; i++) all.push(i);
             selection = all;
+            event.accepted = true;
         }
         else if (event.key === Qt.Key_Escape && searchMode) stopSearch();
         else return;
         event.accepted = true;
     }
 
-    function isDirRow(index) {
-        const row = root.rowFor(index);
-        return row !== null && row.d;
+    Keys.onPressed: (event) => root.handleKey(event)
+
+    // ── settle gate: thumbnails + dir sizes ride the same 120 ms gate ─
+    function settleRequests() {
+        if (!engine.childRunning || root.total === 0) return;
+        const firstVisible = (viewMode === "grid") ? grid.firstVisTile : view.firstVisible;
+        const span = Math.max(root.visibleCount, root.visibleTiles) * 2;
+        const wantedThumb = [];
+        const wantedDir = [];
+        const stillHere = {};
+        for (let i = firstVisible; i < Math.min(root.total, firstVisible + span); i++) {
+            stillHere[i] = true;
+            const row = root.rowFor(i);
+            if (row === null) continue;
+            // Thumbnail — ask only rows that declared `t` and are unknown/waiting.
+            if (row.t === true && root.thumbs[i] === undefined) {
+                wantedThumb.push(i);
+                const copy = root.thumbs;
+                copy[i] = null;
+                root.thumbs = copy;
+            }
+            // Directory size — same pattern for directory rows.
+            const isDir = row.d === true;
+            if (isDir && root.dirSizes[i] === undefined) {
+                wantedDir.push(i);
+                const ds = root.dirSizes;
+                ds[i] = null;
+                root.dirSizes = ds;
+            }
+        }
+        // Cancel queries for rows that left the viewport while waiting.
+        cancelStale(root.thumbs, stillHere, true);
+        cancelStale(root.dirSizes, stillHere, false);
+        engine.thumb(wantedThumb);
+        engine.dirsize(wantedDir);
     }
 
-    // Driven off the singleton's notify rather than the WindowInterface's
-    // own visibleChanged (reliable across quickshell builds). The FIRST
-    // open lists HOME; later opens restore the last path.
-    Connections {
-        target: GabbroState
-
-        function onScreenChanged() {
-            if (root.screenName.length === 0) return;
-            if (GabbroState.screen === root.screenName) {
-                if (root.currentPath.length === 0) {
-                    root.openPath(Quickshell.env("HOME") || "/");
-                }
-            } else if (engine.running) {
-                engine.quit();
-            }
+    function cancelStale(map, stillHere, isThumb) {
+        let drops = [];
+        for (const k in map) {
+            const idx = parseInt(k);
+            if (map[k] === null && stillHere[idx] !== true) drops.push(idx);
+        }
+        if (drops.length === 0) return;
+        const copy = {};
+        for (const j in map) {
+            const idx2 = parseInt(j);
+            if (drops.indexOf(idx2) >= 0) continue;
+            copy[j] = map[j];
+        }
+        if (isThumb) {
+            root.thumbs = copy;
+            engine.thumbcancel(drops);
+        } else {
+            root.dirSizes = copy;
+            engine.dirsizecancel();
         }
     }
 
@@ -318,13 +386,82 @@ FloatingWindow {
         anchors.fill: parent
         spacing: 0
 
-        // Toolbar: up, path bar, hidden toggle, new folder, trash, search.
+        // Tabs row
+        RowLayout {
+            Layout.fillWidth: true
+            implicitHeight: root.tabs.length > 1 ? 34 : 0
+            Layout.leftMargin: 10
+            spacing: 6
+            visible: root.tabs.length > 1
+
+            Repeater {
+                model: root.tabs.length
+
+                delegate: RowLayout {
+                    readonly property int idx: index
+
+                    Rectangle {
+                        implicitWidth: 26
+                        implicitHeight: 24
+                        radius: 6
+                        color: idx === root.tabIndex ? Theme.primary : Theme.surfaceContainerHigh
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: root.baselineName(root.tabs[idx].path) || "/"
+                            color: idx === root.tabIndex ? Theme.textOnPrimary : Theme.text
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSize - 4
+                            elide: Text.ElideRight
+                            maximumLineCount: 1
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.switchTab(idx)
+                        }
+                    }
+
+                    Text {
+                        text: "󰅜"
+                        color: Theme.textSecondary
+                        font.pixelSize: Theme.fontSize - 5
+                        visible: root.tabs.length > 1 && idx === root.tabIndex
+
+                        MouseArea {
+                            anchors.fill: parent
+                            anchors.margins: -4
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.closeTab(idx)
+                        }
+                    }
+                }
+            }
+
+            Item { Layout.fillWidth: true; implicitHeight: 1 }
+
+            Text {
+                text: "󰐅"
+                color: Theme.text
+                font.pixelSize: Theme.fontSize - 3
+
+                MouseArea {
+                    anchors.fill: parent
+                    anchors.margins: -4
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.newTab()
+                }
+            }
+        }
+
+        // Toolbar: up, path bar, hidden toggle, new folder, trash, view modes, search.
         RowLayout {
             Layout.fillWidth: true
             implicitHeight: 44
-            spacing: 8
             Layout.leftMargin: 10
             Layout.rightMargin: 10
+            spacing: 8
 
             Text {
                 text: "󰉖"
@@ -395,20 +532,6 @@ FloatingWindow {
             }
 
             Text {
-                text: "󰐋"
-                color: Theme.text
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSize
-
-                MouseArea {
-                    anchors.fill: parent
-                    anchors.margins: -6
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.newFolder()
-                }
-            }
-
-            Text {
                 text: "󰆴"
                 color: Theme.errorColor
                 font.family: Theme.fontFamily
@@ -424,7 +547,7 @@ FloatingWindow {
 
             Text {
                 text: "󰍉"
-                color: Theme.text
+                color: root.searchRunning ? Theme.primary : Theme.text
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSize
 
@@ -432,21 +555,21 @@ FloatingWindow {
                     anchors.fill: parent
                     anchors.margins: -6
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: { searchInput.forceActiveFocus(); }
+                    onClicked: root.searchInput_focus()
                 }
             }
         }
 
         Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.outlineVariant }
 
-        // Search strip — visible while the walked listing is showing.
+        // Search strip
         RowLayout {
-            visible: root.searchMode || searchRunning
+            visible: root.searchMode || root.searchRunning
             Layout.fillWidth: true
             implicitHeight: 32
-            spacing: 8
             Layout.leftMargin: 12
             Layout.rightMargin: 12
+            spacing: 8
 
             Text {
                 text: "󰍉"
@@ -470,267 +593,485 @@ FloatingWindow {
 
             Text {
                 visible: root.searchRunning
-                text: "scanning…"
+                text: " scanning…"
                 color: Theme.textSecondary
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSize - 3
             }
         }
 
-        // Column headers — click to sort.
+        // Column header cells — click header to sort
         RowLayout {
             Layout.fillWidth: true
-            implicitHeight: 26
+            implicitHeight: 24
             spacing: 0
+            visible: viewMode === "list"
 
-            Item { Layout.preferredWidth: 74 }
-
+            Item { Layout.preferredWidth: 70 }
             Text {
                 Layout.fillWidth: true
-                Layout.leftMargin: 2
                 text: "Name" + (root.sortKey === "name" ? (root.sortDesc ? " ↓" : " ↑") : "")
                 color: root.sortKey === "name" ? Theme.primary : Theme.textSecondary
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSize - 3
                 font.bold: true
-
                 MouseArea {
                     anchors.fill: parent
                     anchors.margins: -4
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: root.sortBy("name")
+                    onClicked: root.sortByBackend("name")
                 }
             }
-
             Text {
                 Layout.preferredWidth: 110
-                text: "Size"
+                text: "Size" + (root.sortKey === "size" ? (root.sortDesc ? " ↓" : " ↑") : "")
                 color: root.sortKey === "size" ? Theme.primary : Theme.textSecondary
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSize - 3
                 font.bold: true
-
                 MouseArea {
                     anchors.fill: parent
                     anchors.margins: -4
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: root.sortBy("size")
+                    onClicked: root.sortByBackend("size")
                 }
             }
-
             Text {
                 Layout.preferredWidth: 140
-                Layout.rightMargin: 10
-                text: "Modified"
+                text: "Modified" + (root.sortKey === "mtime" ? (root.sortDesc ? " ↓" : " ↑") : "")
                 color: root.sortKey === "mtime" ? Theme.primary : Theme.textSecondary
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSize - 3
                 font.bold: true
-
                 MouseArea {
                     anchors.fill: parent
                     anchors.margins: -4
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: root.sortBy("mtime")
+                    onClicked: root.sortByBackend("mtime")
                 }
             }
         }
 
-        function sortBy(key) {
-            if (key === root.sortKey) root.sortDesc = !root.sortDesc;
-            else { root.sortKey = key; root.sortDesc = false; }
-            root.sortByBackend();
-        }
-
-        property string sortKey: "name"
-        property bool sortDesc: false
-
-        function sortByBackend() {
-            engine.sort(root.sortKey, root.sortDesc);
-        }
-
-        // Field/List
+        // Content row — view on the left, preview pane on the right.
         Item {
-            id: field
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            // Loading / empty states.
-            Text {
-                anchors.centerIn: parent
-                visible: total === 0 && !searchRunning
-                text: searchMode ? "No matches" : "Empty directory"
-                color: Theme.textSecondary
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSize
-            }
-
-            ListView {
-                id: view
+            RowLayout {
                 anchors.fill: parent
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
-                model: root.total
-                reuseItems: true
                 spacing: 0
 
-                readonly property int firstVisible: Math.max(0, Math.floor(contentY / root.rowH))
+                Item {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
 
-                onContentYChanged: windowTimer.restart()
-                onHeightChanged: windowTimer.restart()
+                    Text {
+                        anchors.centerIn: parent
+                        visible: root.total === 0 && !root.searchRunning
+                        text: root.searchMode ? "No matches" : "Empty directory"
+                        color: Theme.textSecondary
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSize
+                    }
 
-                delegate: Rectangle {
-                    id: row
-                    required property int index
-                    property var d: root.rowFor(index)
-                    property bool picked: root.isSel(index)
-                    property bool onCursor: root.cursorIndex === index
-
-                    width: view.width
-                    height: root.rowH
-                    radius: 6
-                    color: onCursor ? Theme.surfaceContainerHigh
-                        : picked ? Qt.alpha(Theme.primary, 0.20)
-                        : "transparent"
-
-                    RowLayout {
+                    // ── list view ────────────────────────────────────
+                    ListView {
+                        id: view
                         anchors.fill: parent
-                        anchors.leftMargin: 10
-                        anchors.rightMargin: 12
-                        spacing: 10
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+                        model: root.total
+                        reuseItems: true
+                        spacing: 0
+                        visible: root.viewMode === "list"
 
-                        IconImage {
-                            Layout.preferredWidth: 22
-                            Layout.preferredHeight: 22
-                            asynchronous: true
-                            source: row.d !== null
-                                ? "image://icon/" + (row.d.i || "text-x-generic")
-                                : ""
-                        }
+                        readonly property int firstVisible: Math.max(0, Math.floor(contentY / root.rowH))
 
-                        // The rename editor when this row is being renamed.
-                        TextInput {
-                            id: renameInput
-                            visible: root.renamingIndex === row.index
-                            enabled: visible
-                            Layout.fillWidth: true
-                            clip: true
-                            color: Theme.text
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSize
+                        onContentYChanged: windowTimer.restart()
+                        onHeightChanged: windowTimer.restart()
 
-                            onVisibleChanged: {
-                                if (visible) {
-                                    forceActiveFocus();
-                                    selectAll();
+                        delegate: Rectangle {
+                            id: row
+                            required property int index
+                            property var d: root.rowFor(index)
+                            property bool picked: root.isSel(index)
+                            property bool onCursor: root.cursorIndex === index
+
+                            width: view.width
+                            height: root.rowH
+                            radius: 6
+                            color: onCursor ? Theme.surfaceContainerHigh
+                                : picked ? Qt.alpha(Theme.primary, 0.22)
+                                : "transparent"
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 10
+                                anchors.rightMargin: 12
+                                spacing: 10
+
+                                IconImage {
+                                    Layout.preferredWidth: 22
+                                    Layout.preferredHeight: 22
+                                    asynchronous: true
+                                    visible: row.d !== null
+                                    source: row.d !== null
+                                        ? "image://icon/" + (row.d.i || "text-x-generic")
+                                        : ""
+                                }
+
+                                TextInput {
+                                    id: renameInput
+                                    visible: root.renamingIndex === row.index
+                                    enabled: visible
+                                    Layout.fillWidth: true
+                                    clip: true
+                                    color: Theme.text
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSize
+
+                                    onVisibleChanged: {
+                                        if (visible) {
+                                            forceActiveFocus();
+                                            selectAll();
+                                        }
+                                    }
+
+                                    Keys.onReturnPressed: root.renameCommit(text);
+                                    Keys.onEscapePressed: { root.renamingIndex = -1; view.focus = true; }
+                                }
+
+                                Text {
+                                    visible: root.renamingIndex !== row.index
+                                    Layout.fillWidth: true
+                                    text: root.displayNameOf(row.d) || "…"
+                                    color: onCursor ? Theme.primary : Theme.text
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSize
+                                    font.bold: row.d !== null && row.d.d
+                                    elide: Text.ElideRight
+                                    maximumLineCount: 1
+                                }
+
+                                Text {
+                                    visible: root.searchMode
+                                    Layout.preferredWidth: 220
+                                    text: root.locationOf(row.d)
+                                    color: Theme.textSecondary
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSize - 3
+                                    elide: Text.ElideMiddle
+                                    maximumLineCount: 1
+                                }
+
+                                Text {
+                                    Layout.preferredWidth: 110
+                                    visible: root.showDetailsForList()
+                                    text: row.d !== null
+                                        ? (row.d.d ? "—" : root.fmtSize(row.d.s))
+                                        : ""
+                                    color: Theme.textSecondary
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSize - 3
+                                }
+
+                                Text {
+                                    Layout.preferredWidth: 140
+                                    visible: root.showDetailsForList()
+                                    text: row.d !== null ? root.fmtDate(row.d.m) : ""
+                                    color: Theme.textSecondary
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSize - 3
                                 }
                             }
 
-                            Keys.onReturnPressed: root.renameCommit(text);
-                            Keys.onEscapePressed: { root.renamingIndex = -1; view.focus = true; }
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+
+                                onClicked: (mouse) => {
+                                    if (root.renamingIndex >= 0 && root.renamingIndex !== row.index) {
+                                        root.renameCommit(renameInput.text);
+                                        return;
+                                    }
+                                    root.focusIndex(row.index);
+                                    if (mouse.modifiers & Qt.ControlModifier) {
+                                        root.toggleSel(row.index);
+                                        return;
+                                    }
+                                    if (!(mouse.modifiers & Qt.ShiftModifier)) root.clearSel();
+                                }
+
+                                onDoubleClicked: {
+                                    if (root.renamingIndex >= 0) {
+                                        root.renameCommit(renameInput.text);
+                                        return;
+                                    }
+                                    root.open(row.index);
+                                }
+                            }
                         }
 
-                        Text {
-                            visible: root.renamingIndex !== row.index
-                            Layout.fillWidth: true
-                            text: root.displayNameOf(row.d) || "…"
-                            color: onCursor ? Theme.primary : Theme.text
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSize
-                            font.bold: row.d !== null && row.d.d
-                            elide: Text.ElideRight
-                            maximumLineCount: 1
-                        }
-
-                        Text {
-                            visible: root.searchMode
-                            Layout.preferredWidth: 220
-                            text: root.locationOf(row.d)
-                            color: Theme.textSecondary
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSize - 3
-                            elide: Text.ElideMiddle
-                            maximumLineCount: 1
-                        }
-
-                        Text {
-                            Layout.preferredWidth: 110
-                            visible: root.showDetails
-                            text: row.d !== null && !row.d.d ? root.fmtSize(row.d.s) : (row.d !== null && row.d.d ? "" : "")
-                            color: Theme.textSecondary
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSize - 3
-                        }
-
-                        Text {
-                            Layout.preferredWidth: 144
-                            visible: root.showDetails
-                            text: row.d !== null ? root.fmtDate(row.d.m) : ""
-                            color: Theme.textSecondary
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSize - 3
-                        }
+                        Keys.onPressed: (event) => root.handleKey(event)
                     }
 
-                    MouseArea {
+                    // ── grid view ────────────────────────────────────
+                    GridView {
+                        id: grid
                         anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
+                        clip: true
+                        visible: root.viewMode === "grid"
+                        model: root.total
+                        cellWidth: root.tileW
+                        cellHeight: root.tileH
+                        boundsBehavior: Flickable.StopAtBounds
 
-                        onClicked: (mouse) => {
-                            if (root.renamingIndex >= 0 && root.renamingIndex !== row.index) {
-                                root.renameCommit(renameInput.text);
-                                return;
-                            }
-                            root.focusIndex(row.index);
-                            if (mouse.modifiers & Qt.ControlModifier) {
-                                root.toggleSel(row.index);
-                            } else if (mouse.modifiers & Qt.ShiftModifier) {
-                                root.toggleSel(row.index);
-                            } else {
-                                root.clearSel();
-                            }
-                        }
+                        readonly property int tilesPerRow: Math.max(1, Math.floor(width / root.tileW))
+                        readonly property int firstVisTile: Math.max(0, Math.floor(contentY / root.tileH) * tilesPerRow)
 
-                        onDoubleClicked: {
-                            if (root.renamingIndex >= 0) {
-                                root.renameCommit(renameInput.text);
-                                return;
+                        onContentYChanged: windowTimer.restart()
+
+                        delegate: Item {
+                            id: tile
+                            width: grid.cellWidth
+                            height: grid.cellHeight
+
+                            required property int index
+                            property var d: root.rowFor(index)
+                            property bool picked: root.isSel(index)
+                            property bool onCursor: root.cursorIndex === index
+
+                            Rectangle {
+                                anchors.fill: parent
+                                anchors.margins: 4
+                                radius: 8
+                                color: tile.onCursor ? Theme.surfaceContainerHigh
+                                    : tile.picked ? Qt.alpha(Theme.primary, 0.22)
+                                    : "transparent"
+
+                                ColumnLayout {
+                                    anchors.fill: parent
+                                    anchors.margins: 6
+                                    spacing: 4
+
+                                    Item {
+                                        Layout.fillWidth: true
+                                        Layout.fillHeight: true
+
+                                        IconImage {
+                                            anchors.fill: parent
+                                            asynchronous: true
+                                            fillMode: Image.PreserveAspectFit
+                                            visible: root.thumbs[tile.index] !== undefined
+                                                && root.thumbs[tile.index] !== ""
+                                                && root.thumbs[tile.index] !== null
+                                            source: root.thumbs[tile.index] !== undefined
+                                                && root.thumbs[tile.index] !== ""
+                                                && root.thumbs[tile.index] !== null
+                                                ? "file://" + root.thumbs[tile.index]
+                                                : ""
+                                        }
+
+                                        IconImage {
+                                            anchors.centerIn: parent
+                                            implicitWidth: 48
+                                            implicitHeight: 48
+                                            asynchronous: true
+                                            visible: !((root.thumbs[tile.index] !== undefined)
+                                                && root.thumbs[tile.index] !== ""
+                                                && root.thumbs[tile.index] !== null)
+                                            source: tile.d !== null
+                                                ? "image://icon/" + (tile.d.i || "text-x-generic")
+                                                : ""
+                                        }
+                                    }
+
+                                    Text {
+                                        Layout.fillWidth: true
+                                        horizontalAlignment: Text.AlignHCenter
+                                        text: root.displayNameOf(tile.d) || "…"
+                                        color: tile.onCursor ? Theme.primary : Theme.text
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: Theme.fontSize - 4
+                                        elide: Text.ElideRight
+                                        maximumLineCount: 1
+                                    }
+                                }
                             }
-                            root.open(row.index);
+
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+
+                                onClicked: (mouse) => {
+                                    root.focusIndex(tile.index);
+                                    if (mouse.modifiers & Qt.ControlModifier) {
+                                        root.toggleSel(tile.index);
+                                    } else {
+                                        root.clearSel();
+                                    }
+                                }
+
+                                onDoubleClicked: root.open(tile.index)
+                            }
                         }
                     }
                 }
 
-                ScrollIndicator.vertical: ScrollIndicator {}
-            }
+                // ── preview pane ─────────────────────────────────────────
+                Rectangle {
+                    id: previewPane
+                    Layout.preferredWidth: 250
+                    Layout.fillHeight: true
+                    color: Theme.surfaceContainerHigh
+                    visible: root.cursorRowInfo !== null
 
-            Keys.onPressed: (event) => root.handleKey(event)
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.margins: 10
+                        spacing: 8
+
+                        // thumbnail / icon head
+                        Item {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 140
+
+                            IconImage {
+                                anchors.fill: parent
+                                fillMode: Image.PreserveAspectFit
+                                asynchronous: true
+                                visible: root.previewThumbPath !== ""
+                                source: root.previewThumbPath !== ""
+                                    ? "file://" + root.previewThumbPath
+                                    : ""
+                            }
+
+                            IconImage {
+                                anchors.centerIn: parent
+                                implicitWidth: 64
+                                implicitHeight: 64
+                                asynchronous: true
+                                visible: root.previewThumbPath === "" && root.cursorRowInfo !== null
+                                source: root.cursorRowInfo !== null
+                                    ? "image://icon/" + (root.cursorRowInfo.i || "text-x-generic")
+                                    : ""
+                            }
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 3
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: root.cursorRowInfo !== null
+                                    ? root.displayNameOf(root.cursorRowInfo)
+                                    : ""
+                                color: Theme.text
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSize
+                                elide: Text.ElideRight
+                                maximumLineCount: 1
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: root.cursorRowInfo !== null
+                                    ? (root.kinds[root.cursorRowInfo.k] || "Folder")
+                                    : ""
+                                color: Theme.textSecondary
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSize - 3
+                                elide: Text.ElideRight
+                                maximumLineCount: 1
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: root.previewFacts
+                                color: Theme.text
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSize - 3
+                                textFormat: Text.PlainText
+                            }
+                        }
+
+                        Item { Layout.fillHeight: true; implicitHeight: 1 }
+                    }
+                }
+            }
         }
 
-    // Status bar
-    Rectangle {
-        Layout.fillWidth: true
-        implicitHeight: 28
-        color: Theme.surfaceContainerHigh
+        // Status bar
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: 28
+            color: Theme.surfaceContainerHigh
 
-        Text {
-            anchors.fill: parent
-            anchors.leftMargin: 12
-            anchors.rightMargin: 12
-            verticalAlignment: Text.AlignVCenter
-            text: root.statusLine.length > 0
-                ? root.statusLine
-                : root.total + " items" + (root.showHidden ? " · hidden shown" : "")
-                    + (root.searchMode ? " · results" : "")
-                    + (root.selection.length > 0 ? " · " + root.selection.length + " selected" : "")
-            color: Theme.textSecondary
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSize - 3
-            elide: Text.ElideRight
-            maximumLineCount: 1
+            Text {
+                anchors.fill: parent
+                anchors.leftMargin: 12
+                anchors.rightMargin: 12
+                verticalAlignment: Text.AlignVCenter
+                text: root.statusLine.length > 0
+                    ? root.statusLine
+                    : root.total + " items" + (root.showHidden ? " · hidden shown" : "")
+                        + (root.searchMode ? " · results" : "")
+                        + (root.selection.length > 0 ? " · " + root.selection.length + " selected" : "")
+                color: Theme.textSecondary
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSize - 3
+                elide: Text.ElideRight
+                maximumLineCount: 1
+            }
         }
     }
+
+    // Grid view placeholder — this slice ships list view + preview (grid lands next).
+    property alias viewAlias: view
+
+    // ── derived bindings (read-only, safe) ───────────────────────────
+    function showDetailsForList() {
+        return root.viewMode === "list";
+    }
+
+    readonly property var cursorRowInfo: root.rowFor(root.cursorIndex)
+
+    readonly property string previewThumbPath: {
+        if (root.thumbs[root.cursorIndex] === null || root.thumbs[root.cursorIndex] === undefined
+            || root.thumbs[root.cursorIndex] === "") {
+            return "";
+        }
+        return root.thumbs[root.cursorIndex];
+    }
+
+    readonly property string previewFacts: {
+        if (root.cursorRowInfo === null) return "";
+        const pieces = [];
+        pieces.push(root.fmtSize(root.cursorRowInfo.s));
+        pieces.push(root.fmtDate(root.cursorRowInfo.m));
+        if (root.cursorRowInfo.d) {
+            const dsz = root.dirSizes[root.cursorIndex];
+            if (typeof dsz === "number") pieces.push("contents " + root.fmtSize(dsz));
+        }
+        if (root.cursorRowInfo.l !== undefined && root.cursorRowInfo.l !== null) {
+            pieces.push("→ " + root.cursorRowInfo.l);
+        }
+        return pieces.join("\n");
+    }
+
+    readonly property string searchInput_placeholder: ""
+
+    function searchInput_focus() {
+        searchInput.forceActiveFocus();
+    }
+
+    function sortByBackend(key) {
+        if (key === root.sortKey) root.sortDesc = !root.sortDesc;
+        else { root.sortKey = key; root.sortDesc = false; }
+        engine.sort(root.sortKey, root.sortDesc);
     }
 
     // ── backend wiring ───────────────────────────────────────────────
@@ -738,28 +1079,27 @@ FloatingWindow {
         id: engine
 
         onListed: function (n, readMs, sortMs) {
-                        root.total = n;
+            root.total = n;
             root.rows = [];
             root.held = 0;
             root.requestWindow(true);
+            settleTimer.restart();
         }
 
         onRows: function (start, items, kinds) {
-                        root.held = start;
+            root.held = start;
             root.rows = items;
             root.kinds = kinds;
-            // Reveal flow: the pending name's row gets cursor + F2 editor.
             if (root.revealName.length > 0) {
-                for (let i = 0; i < items.length; i++) {
-                    const nm = root.searchMode ? root.displayNameOf(items[i]) : items[i].n;
+                for (let k = 0; k < items.length; k++) {
+                    const nm = root.searchMode ? root.displayNameOf(items[k]) : items[k].n;
                     if (nm === root.revealName) {
                         root.revealName = "";
-                        root.cursorIndex = start + i;
-                        root.startRename(start + i);
+                        root.cursorIndex = start + k;
+                        root.renameStart(start + k);
                         return;
                     }
                 }
-                // Not in this window; widen once and wait for the next rows.
                 engine.window(0, root.total);
             } else {
                 windowTimer.restart();
@@ -767,17 +1107,19 @@ FloatingWindow {
         }
 
         onFailed: function (where, message) {
-            root.statusLine = "  (" + where + ") " + message;
+            setStatus("(" + where + ") " + message);
         }
 
-        onSearching: function (n, scanned) {
+        onSearching: function (n, scannedN) {
             root.total = n;
-            root.searchScanned = scanned;
+            root.searchScanned = scannedN;
+            setStatus("searching… " + scannedN + " scanned · " + n + " matches");
         }
 
         onSearched: function (n, cancelled) {
             root.total = n;
             root.searchRunning = false;
+            setStatus(cancelled ? "search cancelled" : ("search done — " + n + " matches"));
             root.requestWindow(true);
         }
 
@@ -787,13 +1129,15 @@ FloatingWindow {
                 root.clipMode = root.clipPendingMode;
                 root.clipPendingMode = "";
                 setStatus((root.clipMode === "cut" ? "cut " : "copied ") + paths.length + " item(s)");
-                return;
             }
-            // Direct paths reply with no pending clipboard: nothing v1 uses.
         }
 
         onTransferStarted: function (moving) {
             setStatus((moving ? "moving" : "copying") + "…");
+        }
+
+        onTransferProgress: function (index, name, bytes, totalBytes) {
+            if (totalBytes > 0) setStatus(name + " — " + Math.round(100 * bytes / totalBytes) + "%");
         }
 
         onTransferItem: function (name, ok, err) {
@@ -807,32 +1151,70 @@ FloatingWindow {
 
         onTrashed: function (ok, failed) {
             setStatus("trashed " + ok + " · failed " + failed);
-            root.clipMode = "";
-            root.clipPaths = null;
             root.clearSel();
             root.refresh();
         }
 
         onRenamed: function (ok, path) {
-            if (ok) { setStatus("renamed → " + path); }
-            refresh();
+            if (ok) setStatus("renamed → " + root.baselineName(path));
         }
 
         onMade: function (ok, path) {
-            if (ok) { setStatus("created " + path); }
-            refresh();
+            if (ok) { setStatus("created " + root.baselineName(path)); root.revealName = root.baselineName(path); root.refresh(); }
         }
 
-        onUndone: function (fok) { setStatus(fok ? "undo" : "undo failed"); }
+        onUndone: function (ok) {
+            setStatus(ok ? "undone" : "undo failed");
+            root.refresh();
+        }
 
         onChanged: function (path) {
-            if (!root.searchMode && path === root.currentPath) refresh();
+            if (!root.searchMode && path === root.currentPath) root.refresh();
+        }
+
+        onThumbed: function (rowIdx, file) {
+            if (rowIdx < 0 || rowIdx >= root.total) return;
+            const copy = root.thumbs;
+            copy[rowIdx] = file || "";
+            root.thumbs = copy;
+        }
+
+        onDirsized: function (rowIdx, bytes) {
+            if (rowIdx < 0 || rowIdx >= root.total) return;
+            const copy = root.dirSizes;
+            copy[rowIdx] = bytes;
+            root.dirSizes = copy;
         }
     }
+
+    property string clipPendingMode: ""
+    property var clipPaths: null
+    property string clipMode: ""
 
     Timer {
         id: windowTimer
         interval: 50
         onTriggered: root.requestWindow(false)
+    }
+
+    Timer {
+        id: settleTimer
+        interval: 150
+        onTriggered: root.settleRequests()
+    }
+
+    Connections {
+        target: GabbroState
+
+        function onScreenChanged() {
+            if (root.screenName.length === 0) return;
+            if (GabbroState.screen === root.screenName) {
+                if (root.currentPath.length === 0) {
+                    root.openPath(Quickshell.env("HOME") || "/");
+                }
+            } else if (engine.running) {
+                engine.quit();
+            }
+        }
     }
 }
