@@ -24,6 +24,14 @@ let
       hash = "sha256-G9gr/6ArT86Gf+uofb/EG1Yc1oScrYJavPprEdPA480=";
     };
     cargoLock.lockFile = ./flea.cargo.lock;
+    # Upstream's test harness insists its test sandbox root be at least
+    # two path components deep (a /tmp directly at the root is refused
+    # as "must resolve outside HOME"); the Nix sandbox's bare /tmp fails
+    # that, so point TMPDIR at a nested dir for the check phase.
+    preCheck = ''
+      mkdir -p tmp/flea-sandbox
+      export TMPDIR="$PWD/tmp/flea-sandbox"
+    '';
     meta = { license = pkgs.lib.licenses.mit; };
   };
 in
