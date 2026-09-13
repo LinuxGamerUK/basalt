@@ -1364,6 +1364,11 @@ FloatingWindow {
                 } else if (root.currentPath.length === 0) {
                     root.openPath(Quickshell.env("HOME") || "/");
                 }
+                if (GabbroState.pendingView.length > 0) {
+                    if (GabbroState.pendingView === "columns") root.enterColumns();
+                    else root.viewMode = GabbroState.pendingView;
+                    GabbroState.pendingView = "";
+                }
             } else if (engine.running) {
                 engine.quit();
             }

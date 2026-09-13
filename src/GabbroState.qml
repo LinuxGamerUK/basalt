@@ -11,9 +11,9 @@ Singleton {
     // "" = closed; otherwise the screen name the window is open on.
     property string screen: ""
 
-    // Remote-drive seam: a path queued for the open window to list
-    // (`qs ipc call gabbro open <dir>`); consumed by onScreenChanged.
+    // Remote-drive seams: a path queued to list; a view mode push.
     property string pendingPath: ""
+    property string pendingView: ""
 
     function toggle() {
         root.screen = "";
