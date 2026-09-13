@@ -266,9 +266,13 @@ Bitten and learned the hard way — they are baked into Basalt's code:
 
 ## Roadmap
 
-- Lock screen — WlSessionLock + PAM (single-file, own task)
-- Media popup — MPRIS now-playing surface
-- PSK entry for connecting to new secured wifi networks from the panel
+- Wifi PSK entry — ~~DONE 2026-09-13 (19b248e)~~
+- **File manager** — basalt's own Material 3 Quickshell frontend driving
+  flea's MIT Rust backend (newline-delimited JSON over stdin/stdout,
+  pinned upstream build). v1 floor: tabs, list/grid/columns views,
+  copy/move/rename/new-dir/trash, previews, search
+- Final touches (end of project): lock screen (WlSessionLock + PAM),
+  media popup (MPRIS)
 
 ## Version history
 

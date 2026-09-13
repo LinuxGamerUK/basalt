@@ -5,6 +5,8 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 import "widgets"
+import "filemgr"
+import "."
 
 // Basalt shell root — one identical bar per screen; workspaces are
 // filtered per-screen inside each Bar. modelData/screen live on Bar.qml
@@ -58,6 +60,22 @@ ShellRoot {
             }
         }
     }
+
+    // Files IPC — `qs ipc call files toggle` (works only when the
+    // basalt module has the file manager enabled: the window's backend
+    // binary resolves `flea` from PATH).
+    IpcHandler {
+        target: "files"
+
+        function toggle() {
+            FilesState.toggle();
+        }
+    }
+
+    // Files window — one FloatingWindow, created hidden; the backend
+    // process spawns on first open and drains on close. Hidden state
+    // lives on FilesState so the whole shell shares one instance.
+    FilesWindow {}
 
     // Click-catcher — created first so it maps at the BOTTOM of the
     // layer: bars and popups always stack above it. Its MouseArea is

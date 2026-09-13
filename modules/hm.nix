@@ -10,6 +10,22 @@ let
     ps.dbus-python
     ps.pygobject3
   ]);
+
+  # flea's Rust backend (the Files window's engine) — pinned upstream.
+  # Pure-std Rust, zero dependencies (upstream Cargo.lock committed at
+  # modules/flea.cargo.lock); only the `--backend` NDJSON mode is used.
+  fileManagerPackage = pkgs.rustPlatform.buildRustPackage {
+    pname = "flea";
+    version = "0.2.1";
+    src = pkgs.fetchFromGitHub {
+      owner = "thisisgm";
+      repo = "flea";
+      rev = "c6a014999696fe67a899013d97ebccf889e98f47";
+      hash = "sha256-G9gr/6ArT86Gf+uofb/EG1Yc1oScrYJavPprEdPA480=";
+    };
+    cargoLock.lockFile = ./flea.cargo.lock;
+    meta = { license = pkgs.lib.licenses.mit; };
+  };
 in
 {
   options.programs.basalt = {
@@ -26,6 +42,13 @@ in
       type = types.str;
       default = "graphical-session.target";
       description = "Systemd user target the shell is tied to (start/stop with the session).";
+    };
+
+    fileManager = {
+      enable = mkEnableOption ''
+        the Basalt file manager (Files) — a Material 3 Quickshell frontend
+        driving flea's MIT Rust backend (pinned upstream; pure std Rust,
+        zero dependencies, see src/filemgr/)'';
     };
   };
 
@@ -46,7 +69,8 @@ in
       pkgs.python3
       pkgs.cava
       cfg.package.passthru.quickshell
-    ];
+    ] ++ (optionals cfg.fileManager.enable [ fileManagerPackage ]);
+
     home.file.".config/hypr/hyprpaper.conf".text = "";
 
     # cava config: the Cava.qml widget spawns `cava -p ~/.config/cava/config`
