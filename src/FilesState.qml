@@ -9,6 +9,8 @@ Singleton {
     id: root
 
     property bool open: false
+    // Debug/inspection surface — the window writes its live state here.
+    property string diag: ""
 
     function toggle() {
         root.open = !root.open;

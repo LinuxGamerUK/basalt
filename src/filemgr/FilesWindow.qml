@@ -100,6 +100,13 @@ FloatingWindow {
 
     function setStatus(label) {
         root.statusLine = label;
+        debugNote(label);
+    }
+
+    function debugNote(label) {
+        FilesState.diag = label + " · total=" + root.total
+            + " · held=" + root.held + " · rows=" + root.rows.length
+            + " · path=" + root.currentPath + " · backend=" + backend.running;
     }
 
     // ── navigation + search ──────────────────────────────────────────
@@ -716,6 +723,8 @@ FloatingWindow {
         id: engine
 
         onListed: function (n, readMs, sortMs) {
+            debugNote("listed n=" + n);
+
             root.total = n;
             root.rows = [];
             root.held = 0;
@@ -723,6 +732,8 @@ FloatingWindow {
         }
 
         onRows: function (start, items, kinds) {
+            debugNote("rows");
+
             root.held = start;
             root.rows = items;
             root.kinds = kinds;
