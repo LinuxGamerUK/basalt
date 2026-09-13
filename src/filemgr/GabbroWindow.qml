@@ -942,9 +942,9 @@ FloatingWindow {
                                 anchors.fill: parent
                                 fillMode: Image.PreserveAspectFit
                                 asynchronous: true
-                                visible: root.previewThumbPath !== ""
-                                source: root.previewThumbPath !== ""
-                                    ? "file://" + root.previewThumbPath
+                                visible: root.isImageRow(root.cursorRowInfo)
+                                source: root.isImageRow(root.cursorRowInfo)
+                                    ? "file://" + root.pathOf(root.cursorIndex)
                                     : ""
                             }
 
@@ -1035,6 +1035,15 @@ FloatingWindow {
     // ── derived bindings (read-only, safe) ───────────────────────────
     function showDetailsForList() {
         return root.viewMode === "list";
+    }
+
+    // .png/.jpg/.jpeg/.gif/.webp/.avif/.bmp — direct file render, no
+    // thumb pipeline; the flea cache stays for grid thumbnails later.
+    readonly property var imageExts: [".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif", ".bmp"]
+    function isImageRow(row) {
+        if (row === null || row.d) return false;
+        const n = (root.displayNameOf(row) || "").toLowerCase();
+        return root.imageExts.some((e) => n.endsWith(e));
     }
 
     readonly property var cursorRowInfo: root.rowFor(root.cursorIndex)
