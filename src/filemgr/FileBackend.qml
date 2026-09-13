@@ -156,7 +156,10 @@ Item {
 
         stdout: SplitParser {
             splitMarker: "\n"
-            onRead: function (data) { root.receive(data) }
+            onRead: function (data) {
+                FilesState.diag = "bridge: reply " + data.substring(0, 60);
+                root.receive(data);
+            }
         }
 
         onStarted: {
