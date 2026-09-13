@@ -5,6 +5,8 @@ with lib;
 let
   cfg = config.programs.basalt;
   system = pkgs.stdenv.hostPlatform.system;
+  # The pairing agent needs D-Bus bindings the stock python3 lacks.
+  agentPython = pkgs.python3.withPackages (ps: [ ps.dbus-python ]);
 in
 {
   options.programs.basalt = {
@@ -105,6 +107,29 @@ in
         # session appears, then stays.
         Restart = "always";
         RestartSec = 3;
+      };
+      Install = {
+        WantedBy = [ cfg.systemdTarget ];
+      };
+    };
+
+    # Bluez pairing agent — without ANY registered agent bluez fails every
+    # pairing with "Authentication Failed"; blueman's agent only ships
+    # inside its GTK applet, so Basalt ships a minimal headless one. It
+    # auto-accepts Just Works/numeric-compare SSP and service connect
+    # prompts (documented headless behaviour). Requires a system bluez
+    # daemon (hardware.bluetooth.enable = true on NixOS).
+    systemd.user.services.basalt-bt-agent = {
+      Unit = {
+        Description = "Bluez bluetooth pairing agent for Basalt";
+        After = [ cfg.systemdTarget ];
+        PartOf = [ cfg.systemdTarget ];
+        StartLimitIntervalSec = 0;
+      };
+      Service = {
+        ExecStart = "${agentPython}/bin/python ${cfg.package}/share/basalt/scripts/bluetooth-agent.py";
+        Restart = "always";
+        RestartSec = 5;
       };
       Install = {
         WantedBy = [ cfg.systemdTarget ];
