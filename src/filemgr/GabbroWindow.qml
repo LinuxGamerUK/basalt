@@ -322,8 +322,6 @@ FloatingWindow {
         event.accepted = true;
     }
 
-    Keys.onPressed: (event) => root.handleKey(event)
-
     // ── settle gate: thumbnails + dir sizes ride the same 120 ms gate ─
     function settleRequests() {
         if (!engine.childRunning || root.total === 0) return;
