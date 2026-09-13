@@ -78,6 +78,15 @@ ShellRoot {
         function dbg(): string {
             return GabbroState.diag.length > 0 ? GabbroState.diag : "(no notes yet)";
         }
+
+        function open(path: string): void {
+            const focused = Hyprland.focusedMonitor
+                ? Hyprland.focusedMonitor.name : "";
+            if (focused !== "") {
+                GabbroState.pendingPath = path;
+                GabbroState.screen = focused;
+            }
+        }
     }
 
     // Gabbro window (the file manager) — one per screen (house per-screen rule), created

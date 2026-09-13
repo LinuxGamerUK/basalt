@@ -1218,7 +1218,10 @@ FloatingWindow {
         function onScreenChanged() {
             if (root.screenName.length === 0) return;
             if (GabbroState.screen === root.screenName) {
-                if (root.currentPath.length === 0) {
+                if (GabbroState.pendingPath.length > 0) {
+                    root.openPath(GabbroState.pendingPath);
+                    GabbroState.pendingPath = "";
+                } else if (root.currentPath.length === 0) {
                     root.openPath(Quickshell.env("HOME") || "/");
                 }
             } else if (engine.running) {
