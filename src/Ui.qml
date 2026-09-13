@@ -21,11 +21,13 @@ Singleton {
     property string mixerScreen: ""
     property string brightnessScreen: ""
     property string networkScreen: ""
+    property string bluetoothScreen: ""
     property string settingsScreen: ""
 
     readonly property bool anythingOpen: pickerScreen !== "" || calendarScreen !== ""
         || notificationsScreen !== "" || launcherScreen !== "" || mixerScreen !== ""
-        || brightnessScreen !== "" || networkScreen !== "" || settingsScreen !== ""
+        || brightnessScreen !== "" || networkScreen !== ""
+        || bluetoothScreen !== "" || settingsScreen !== ""
 
     function togglePicker(screen) {
         settingsScreen = "";
@@ -35,6 +37,7 @@ Singleton {
         mixerScreen = "";
         brightnessScreen = "";
         networkScreen = "";
+        bluetoothScreen = "";
         root.pickerScreen = (root.pickerScreen === screen) ? "" : screen;
     }
 
@@ -46,6 +49,7 @@ Singleton {
         mixerScreen = "";
         brightnessScreen = "";
         networkScreen = "";
+        bluetoothScreen = "";
         root.calendarScreen = (root.calendarScreen === screen) ? "" : screen;
     }
 
@@ -57,6 +61,7 @@ Singleton {
         mixerScreen = "";
         brightnessScreen = "";
         networkScreen = "";
+        bluetoothScreen = "";
         root.notificationsScreen = (root.notificationsScreen === screen) ? "" : screen;
     }
 
@@ -68,6 +73,7 @@ Singleton {
         mixerScreen = "";
         brightnessScreen = "";
         networkScreen = "";
+        bluetoothScreen = "";
         root.launcherScreen = (root.launcherScreen === screen) ? "" : screen;
     }
 
@@ -79,6 +85,7 @@ Singleton {
         launcherScreen = "";
         brightnessScreen = "";
         networkScreen = "";
+        bluetoothScreen = "";
         root.mixerScreen = (root.mixerScreen === screen) ? "" : screen;
     }
 
@@ -90,6 +97,7 @@ Singleton {
         launcherScreen = "";
         mixerScreen = "";
         networkScreen = "";
+        bluetoothScreen = "";
         root.brightnessScreen = (root.brightnessScreen === screen) ? "" : screen;
     }
 
@@ -104,6 +112,18 @@ Singleton {
         root.networkScreen = (root.networkScreen === screen) ? "" : screen;
     }
 
+    function toggleBluetooth(screen) {
+        pickerScreen = "";
+        calendarScreen = "";
+        notificationsScreen = "";
+        launcherScreen = "";
+        mixerScreen = "";
+        brightnessScreen = "";
+        networkScreen = "";
+        settingsScreen = "";
+        root.bluetoothScreen = (root.bluetoothScreen === screen) ? "" : screen;
+    }
+
     function toggleSettings(screen) {
         pickerScreen = "";
         calendarScreen = "";
@@ -112,6 +132,7 @@ Singleton {
         mixerScreen = "";
         brightnessScreen = "";
         networkScreen = "";
+        bluetoothScreen = "";
         root.settingsScreen = (root.settingsScreen === screen) ? "" : screen;
     }
 
@@ -123,6 +144,7 @@ Singleton {
         mixerScreen = "";
         brightnessScreen = "";
         networkScreen = "";
+        bluetoothScreen = "";
         settingsScreen = "";
     }
 }

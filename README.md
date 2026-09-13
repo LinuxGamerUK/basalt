@@ -69,6 +69,15 @@ Basalt has a short, non-negotiable list of rules:
   icons, accent when connected), and a panel with the device state, the
   current SSID, and the live wifi scan with signal strength, security
   and known-network marks — click a network to connect
+- **Bluetooth** — a bar chip (lit when a device is connected, glyph
+  tracks adapter power) and a control-center panel in the same language
+  as the network panel: power toggle, scan for devices, live
+  connecting/pairing status with battery readouts where the device
+  reports them, the remembered (paired) device list with click-to-
+  connect, per-device forget, and discovered devices with one-click
+  pair. Backend is bluez via the DBus surface blueman sits on — bluez
+  must be enabled (`hardware.bluetooth.enable = true` on NixOS);
+  blueman remains available for anything deeper
 - **Launcher** — SUPER+SPACE or the NixOS-snowflake bar button; live
   filtering over desktop entries, full keyboard navigation, and
   usage-frequency ranking (your regulars float to the top, persisted in

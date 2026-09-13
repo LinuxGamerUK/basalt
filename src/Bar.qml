@@ -6,6 +6,7 @@ import Quickshell.Wayland
 import Quickshell.Widgets
 import Quickshell.Services.Pipewire
 import Quickshell.Networking
+import Quickshell.Bluetooth
 
 import "widgets"
 import "root:/"
@@ -28,6 +29,7 @@ PanelWindow {
     readonly property bool mixerOpen: Ui.mixerScreen === root.screenName
     readonly property bool brightnessOpen: Ui.brightnessScreen === root.screenName
     readonly property bool networkOpen: Ui.networkScreen === root.screenName
+    readonly property bool bluetoothOpen: Ui.bluetoothScreen === root.screenName
     readonly property bool settingsOpen: Ui.settingsScreen === root.screenName
     readonly property string screenName: root.modelData ? root.modelData.name : ""
 
@@ -41,6 +43,13 @@ PanelWindow {
     readonly property bool netConnected: root.netDevice !== null
     readonly property bool netIsWifi: root.netDevice !== null
         && root.netDevice.type === DeviceType.Wifi
+
+    // Bluetooth chip state — any connected device lights the chip; the
+    // adapter on/off decides the glyph.
+    readonly property bool btConnected: Bluetooth.devices.values.some(
+        d => d.connected)
+    readonly property bool btOn: Bluetooth.defaultAdapter !== null
+        && Bluetooth.defaultAdapter.enabled
 
     anchors {
         top: true
@@ -314,6 +323,37 @@ PanelWindow {
                     onClicked: Ui.toggleNetwork(root.screenName)
                 }
             }
+            // Bluetooth chip — connected-device glow, click opens the
+            // bluetooth panel (power toggle, scan, remembered devices).
+            Rectangle {
+                id: btChip
+                implicitWidth: Theme.chipHeight
+                implicitHeight: Theme.chipHeight
+                radius: height / 2
+                color: root.bluetoothOpen
+                    ? Theme.primary
+                    : (root.btConnected && Theme.transparentBar
+                        ? Qt.alpha(Theme.primary, 0.55)
+                        : Theme.surfaceContainerHigh)
+
+                Text {
+                    anchors.centerIn: parent
+                    text: root.btOn
+                        ? "󰂯"
+                        : "󰂲"
+                    color: root.bluetoothOpen
+                        ? Theme.textOnPrimary
+                        : (root.btConnected ? Theme.primary : Theme.text)
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSize
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: Ui.toggleBluetooth(root.screenName)
+                }
+            }
             Rectangle {
                 id: bellBtn
                 implicitWidth: Theme.chipHeight
@@ -508,6 +548,32 @@ PanelWindow {
         color: Qt.rgba(0, 0, 0, 0)
 
         NetworkPanel {
+            anchors.fill: parent
+        }
+    }
+
+    // Bluetooth panel — power, scan, remembered devices. Sits beside
+    // the network popup in the same top-right slot family.
+    PanelWindow {
+        id: bluetoothPopup
+        screen: root.modelData
+        anchors {
+            top: true
+            right: true
+        }
+        aboveWindows: true
+        focusable: false
+        exclusiveZone: -1
+        margins {
+            top: Math.round(Theme.barHeight + Theme.barMargin * 2)
+            right: Math.round(8 * Theme.uiScale)
+        }
+        implicitWidth: Math.round(400 * Theme.uiScale)
+        implicitHeight: Math.round(540 * Theme.uiScale)
+        visible: root.bluetoothOpen
+        color: Qt.rgba(0, 0, 0, 0)
+
+        BluetoothPanel {
             anchors.fill: parent
         }
     }
