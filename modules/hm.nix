@@ -6,7 +6,10 @@ let
   cfg = config.programs.basalt;
   system = pkgs.stdenv.hostPlatform.system;
   # The pairing agent needs D-Bus bindings the stock python3 lacks.
-  agentPython = pkgs.python3.withPackages (ps: [ ps.dbus-python ]);
+  agentPython = pkgs.python3.withPackages (ps: [
+    ps.dbus-python
+    ps.pygobject
+  ]);
 in
 {
   options.programs.basalt = {
