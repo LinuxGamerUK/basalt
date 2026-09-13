@@ -29,7 +29,7 @@ let
     # exec inside it — every job fails and thumbnails stay blank on
     # NixOS. Bind the store into the jail (harmless where absent).
     postPatch = ''
-      sed -i '0,/^    "\/usr",$/s//    "\/usr",\n    "--ro-bind",\n    "\/nix\/store",\n    "\/nix\/store",/' src/backend/sandbox.rs
+      sed -i '0,/^    "\/usr",$/s//    "\/usr",\n    "--ro-bind",\n    "\/nix\/store",\n    "\/nix\/store",\n    "--ro-bind",\n    "\/home",\n    "\/home",/' src/backend/sandbox.rs
     '';
     # Upstream's 604-test suite assumes a desktop root: /usr/bin/false,
     # system shared-mime-info under /usr/share, GIO — none of which
