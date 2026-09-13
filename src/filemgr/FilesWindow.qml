@@ -100,13 +100,6 @@ FloatingWindow {
 
     function setStatus(label) {
         root.statusLine = label;
-        debugNote(label);
-    }
-
-    function debugNote(label) {
-        FilesState.diag = label + " · total=" + root.total
-            + " · held=" + root.held + " · rows=" + root.rows.length
-            + " · path=" + root.currentPath + " · backend=" + engine.running;
     }
 
     // ── navigation + search ──────────────────────────────────────────
@@ -740,18 +733,14 @@ FloatingWindow {
         id: engine
 
         onListed: function (n, readMs, sortMs) {
-            debugNote("listed n=" + n);
-
-            root.total = n;
+                        root.total = n;
             root.rows = [];
             root.held = 0;
             root.requestWindow(true);
         }
 
         onRows: function (start, items, kinds) {
-            debugNote("rows");
-
-            root.held = start;
+                        root.held = start;
             root.rows = items;
             root.kinds = kinds;
             // Reveal flow: the pending name's row gets cursor + F2 editor.
