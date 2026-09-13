@@ -86,6 +86,12 @@ in
       # without either on PATH thumbnails are disabled (warned once).
       pkgs.bubblewrap
       pkgs.util-linux
+      # Image thumbnails: flea asks for a validated thumbnailer spec per
+      # MIME type (freedesktop thumbnailer spec); gdk-pixbuf's shipping
+      # spec covers the common image formats. Also ffmpeg for video and
+      # ffmpegthumbnailer for media frames.
+      pkgs.gdk-pixbuf
+      (pkgs.ffmpegthumbnailer.overrideAttrs (_: { }))
     ]);
 
     home.file.".config/hypr/hyprpaper.conf".text = "";
