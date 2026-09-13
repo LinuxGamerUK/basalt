@@ -24,7 +24,7 @@ BUS = None
 MAINLOOP = None
 
 BLUEZ_SERVICE = "org.bluez"
-AGENT_MANAGER = f"/{BLUEZ_SERVICE}"
+AGENT_MANAGER = "/"  # org.bluez exposes AgentManager1 at the root path
 AGENT_PATH = "/basalt/bluetooth/agent"
 
 CAPABILITY = "KeyboardDisplay"  # broadest: accepts Just Works + passkey/modes
