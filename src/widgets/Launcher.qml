@@ -65,6 +65,25 @@ PanelWindow {
         }
     }
 
+    // DesktopEntries loads ASYNCHRONOUSLY after shell start — so on the
+    // first open after a boot/reload the visibleChanged snapshot can be
+    // an empty list. Refill live the moment the entries arrive: the
+    // launcher then populates itself mid-open (and being loaded, every
+    // later open is instant — the cache is DesktopEntries' own).
+    Connections {
+        target: DesktopEntries
+        function onApplicationsChanged() {
+            if (root.visible) list.model = root.filterApps();
+        }
+    }
+
+    Connections {
+        target: DesktopEntries.applications
+        function onValuesChanged() {
+            if (root.visible) list.model = root.filterApps();
+        }
+    }
+
     Rectangle {
         id: launcherPill
 
