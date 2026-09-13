@@ -274,8 +274,12 @@ Bitten and learned the hard way — they are baked into Basalt's code:
   sorting (name/size/mtime, folders-first), hidden toggle, inline
   rename (F2), trash (Delete), new folder with backend-free-name
   handling, undo, copy/cut/paste, search walk (fuzzy, ranked).
-  Remaining v1 floor: grid + columns views, preview pane
-  (thumbnails/text/media), status polish
+  Slice 2 (ab9d3fd, validated on the P1 canary + deployed): tabs
+  (pill row, Ctrl+T/Ctrl+W), grid view with live thumbnails via the
+  thumb protocol, and a preview pane (thumbnail head, kind/size/date
+  facts, directory contents size via the dirsize walk, symlink
+  targets). Remaining v1 floor: columns view, text/media previews,
+  open-with dialogs
 - Final touches (end of project): lock screen (WlSessionLock + PAM),
   media popup (MPRIS)
 
