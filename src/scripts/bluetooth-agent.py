@@ -65,7 +65,7 @@ class Agent(dbus.service.Object):
     def DisplayPasskey(self, device, passkey, entered):
         pass
 
-    @dbus.service.method(BLUEZ_SERVICE, in_signature="ouu", out_signature="")
+    @dbus.service.method(BLUEZ_SERVICE, in_signature="ou", out_signature="")
     def RequestConfirmation(self, device, passkey):
         # SSP Just Works / numeric compare: accept. Documented behaviour of
         # a headless agent — the alternative is unrecoverable pairing.
