@@ -56,7 +56,7 @@ class Agent(dbus.service.Object):
     def DisplayPinCode(self, device, pin_code):
         pass  # headless: the peer shows it; nothing to render
 
-    @dbus.service.method(BLUEZ_SERVICE, in_signature="ou", out_signature="s")
+    @dbus.service.method(BLUEZ_SERVICE, in_signature="o", out_signature="u")
     def RequestPasskey(self, device):
         # Passkey path: accept the peer's passkey prompt with a fixed key.
         return dbus.UInt32(AGENT_PIN)
