@@ -106,7 +106,7 @@ FloatingWindow {
     function debugNote(label) {
         FilesState.diag = label + " · total=" + root.total
             + " · held=" + root.held + " · rows=" + root.rows.length
-            + " · path=" + root.currentPath + " · backend=" + backend.running;
+            + " · path=" + root.currentPath + " · backend=" + engine.running;
     }
 
     // ── navigation + search ──────────────────────────────────────────
