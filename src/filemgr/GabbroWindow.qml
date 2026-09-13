@@ -951,7 +951,9 @@ FloatingWindow {
                                 implicitWidth: 64
                                 implicitHeight: 64
                                 asynchronous: true
-                                visible: root.previewThumbPath === "" && root.cursorRowInfo !== null
+                                visible: root.cursorRowInfo !== null
+                                    && root.previewThumbPath === ""
+                                    && !root.isImageRow(root.cursorRowInfo)
                                 source: root.cursorRowInfo !== null
                                     ? "image://icon/" + (root.cursorRowInfo.i || "text-x-generic")
                                     : ""
