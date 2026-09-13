@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
 import Quickshell._Window
+import Quickshell.Io
 import Quickshell.Widgets
 
 import "root:/"
@@ -940,6 +941,25 @@ FloatingWindow {
                                 maximumLineCount: 1
                             }
 
+                            Rectangle {
+                                Layout.fillWidth: true
+                                implicitHeight: root.previewFacts.length > 0 ? 1 : 0
+                                color: Theme.outlineVariant
+                                visible: root.textPreviewPath.length === 0
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                visible: root.textPreviewPath.length > 0
+                                text: root.textPreviewHead
+                                color: Theme.text
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSize - 3
+                                textFormat: Text.PlainText
+                                wrapMode: Text.WrapAnywhere
+                                clip: true
+                            }
+
                             Text {
                                 Layout.fillWidth: true
                                 text: root.previewFacts
@@ -947,6 +967,7 @@ FloatingWindow {
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSize - 3
                                 textFormat: Text.PlainText
+                                visible: root.textPreviewPath.length === 0
                             }
                         }
 
@@ -990,12 +1011,34 @@ FloatingWindow {
     }
 
     // .png/.jpg/.jpeg/.gif/.webp/.avif/.bmp — direct file render, no
-    // thumb pipeline; the grid uses the same direct load.
+    // intermediate cache; the grid uses the same direct load.
     readonly property var imageExts: [".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif", ".bmp"]
     function isImageRow(row) {
         if (row === null || row.d) return false;
         const n = (root.displayNameOf(row) || "").toLowerCase();
         return root.imageExts.some((e) => n.endsWith(e));
+    }
+
+    // .txt/.md/.log/.nix/.conf-.cfg-etc — preview reads the file via
+    // the shell's FileView, capped (first 30 lines, small files only).
+    readonly property var textExts: [".txt", ".md", ".log", ".nix", ".conf", ".cfg",
+        ".json", ".sh", ".py", ".lua", ".js", ".ts", ".yaml", ".yml", ".toml", ".ini"]
+    function isTextRow(row) {
+        if (row === null || row.d) return false;
+        const n = (root.displayNameOf(row) || "").toLowerCase();
+        return root.textExts.some((e) => n.endsWith(e));
+    }
+
+    readonly property string textPreviewPath: root.isTextRow(root.cursorRowInfo)
+        && root.cursorRowInfo.s < 65536
+        ? root.pathOf(root.cursorIndex) : ""
+
+    readonly property string textPreviewHead: {
+        if (textPreviewPath.length === 0) return "";
+        const t = textPreview.text() || "";
+        if (t.length === 0) return "(empty)";
+        const lines = t.split("\n").slice(0, 16);
+        return lines.join("\n");
     }
 
     readonly property var cursorRowInfo: root.rowFor(root.cursorIndex)
@@ -1028,6 +1071,11 @@ FloatingWindow {
     }
 
     // ── backend wiring ───────────────────────────────────────────────
+    FileView {
+        id: textPreview
+        printErrors: false
+    }
+
     FileBackend {
         id: engine
 
