@@ -82,6 +82,10 @@ in
       # and the GIO application query/launcher, both by XDG spec.
       pkgs.shared-mime-info
       pkgs.glib
+      # flea's thumbnail workers sandbox themselves with bwrap/prlimit;
+      # without either on PATH thumbnails are disabled (warned once).
+      pkgs.bubblewrap
+      pkgs.util-linux
     ]);
 
     home.file.".config/hypr/hyprpaper.conf".text = "";
