@@ -30,6 +30,7 @@ FloatingWindow {
     property var rows: []
     property var kinds: []
     property bool showHidden: false
+    property bool showDetails: true
     // Search walk: result rows name relative paths (backend rule).
     property bool searchMode: false
     property int searchScanned: 0
