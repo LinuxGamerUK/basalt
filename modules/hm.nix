@@ -29,8 +29,9 @@ let
     # as "must resolve outside HOME"); the Nix sandbox's bare /tmp fails
     # that, so point TMPDIR at a nested dir for the check phase.
     preCheck = ''
-      mkdir -p tmp/flea-sandbox
+      mkdir -p tmp/flea-sandbox tmp/flea-home
       export TMPDIR="$PWD/tmp/flea-sandbox"
+      export HOME="$PWD/tmp/flea-home"
     '';
     meta = { license = pkgs.lib.licenses.mit; };
   };
