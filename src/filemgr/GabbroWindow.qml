@@ -128,6 +128,7 @@ FloatingWindow {
 
     function setStatus(label) {
         root.statusLine = label;
+        GabbroState.diag = "status: " + label;
     }
 
     function rememberTab() {
@@ -1079,6 +1080,7 @@ FloatingWindow {
         id: engine
 
         onListed: function (n, readMs, sortMs) {
+            GabbroState.diag = "listed n=" + n;
             root.total = n;
             root.rows = [];
             root.held = 0;
@@ -1087,6 +1089,7 @@ FloatingWindow {
         }
 
         onRows: function (start, items, kinds) {
+            GabbroState.diag = "rows " + start + "+" + items.length;
             root.held = start;
             root.rows = items;
             root.kinds = kinds;
