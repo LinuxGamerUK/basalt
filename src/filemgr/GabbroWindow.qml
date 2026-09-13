@@ -248,9 +248,7 @@ FloatingWindow {
         refreshColumns();
     }
 
-    function onColumnDataChanged_() {}  // no-op marker; row updates apply per-path
-
-
+    function open(index) {
         const row = root.rowFor(index);
         if (row === null) return;
         if (row.d) {
