@@ -2,17 +2,20 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
-import Quickshell
 
-// Basalt Files — open/closed state for the file-manager window.
+// Basalt Files — open state for the file-manager window (house rule:
+// one window, on the focused screen, shared singleton state).
 Singleton {
     id: root
 
-    property bool open: false
-    // Debug/inspection surface — the window writes its live state here.
-    property string diag: ""
+    // "" = closed; otherwise the screen name the window is open on.
+    property string screen: ""
 
     function toggle() {
-        root.open = !root.open;
+        root.screen = "";
+    }
+
+    function toggleOnScreen(name) {
+        root.screen = (root.screen === name) ? "" : name;
     }
 }

@@ -68,7 +68,11 @@ ShellRoot {
         target: "files"
 
         function toggle() {
-            FilesState.toggle();
+            const focused = Hyprland.focusedMonitor
+                ? Hyprland.focusedMonitor.name : "";
+            if (focused !== "") {
+                FilesState.toggleOnScreen(focused);
+            }
         }
 
         function dbg(): string {
@@ -76,10 +80,16 @@ ShellRoot {
         }
     }
 
-    // Files window — one FloatingWindow, created hidden; the backend
-    // process spawns on first open and drains on close. Hidden state
-    // lives on FilesState so the whole shell shares one instance.
-    FilesWindow {}
+    // Files window — one per screen (house per-screen rule), created
+    // hidden; the backend process spawns on first open and drains on
+    // last close. Visibility is shared state via FilesState.
+    Variants {
+        model: Quickshell.screens
+
+        delegate: Component {
+            FilesWindow {}
+        }
+    }
 
     // Click-catcher — created first so it maps at the BOTTOM of the
     // layer: bars and popups always stack above it. Its MouseArea is

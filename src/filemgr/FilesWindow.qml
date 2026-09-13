@@ -15,7 +15,10 @@ import "."
 FloatingWindow {
     id: root
 
-    visible: FilesState.open
+    property var modelData
+    screen: modelData
+    readonly property string screenName: root.modelData ? root.modelData.name : ""
+    visible: FilesState.screen === root.screenName
     color: Theme.surfaceContainer
 
     implicitWidth: 1080
@@ -292,14 +295,15 @@ FloatingWindow {
         return row !== null && row.d;
     }
 
-    // First open lists HOME; close drains the backend. Driven off the
-    // singleton's notify rather than the WindowInterface's own
-    // visibleChanged (reliable across quickshell builds).
+    // Driven off the singleton's notify rather than the WindowInterface's
+    // own visibleChanged (reliable across quickshell builds). The FIRST
+    // open lists HOME; later opens restore the last path.
     Connections {
         target: FilesState
 
-        function onOpenChanged() {
-            if (FilesState.open) {
+        function onScreenChanged() {
+            if (root.screenName.length === 0) return;
+            if (FilesState.screen === root.screenName) {
                 if (root.currentPath.length === 0) {
                     root.openPath(Quickshell.env("HOME") || "/");
                 }
