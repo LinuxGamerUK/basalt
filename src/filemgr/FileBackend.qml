@@ -29,6 +29,9 @@ Item {
     signal thumbed(int row, string file)
     signal dirsized(int row, real bytes)
 
+    // The listing directory's filesystem id (move vs copy on patches).
+    property int dirDev: 0
+
     // Current sort order, set by accepted sorts (list resets to name asc).
     property string sortBy: "name"
     property bool sortDesc: false
