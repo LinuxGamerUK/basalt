@@ -33,6 +33,26 @@ Rectangle {
 
     readonly property bool wifiUp: Networking.wifiEnabled
 
+    // Inline PSK entry — the secured-and-unknown network currently
+    // awaiting a password (null = no prompt showing).
+    property var pskNetwork: null
+    property string pskText: ""
+    property string pskError: ""
+
+    function submitPsk() {
+        if (root.pskNetwork === null || root.pskText.length < 8) {
+            root.pskError = root.pskText.length === 0
+                ? "" : "PSK must be at least 8 characters";
+            return;
+        }
+        const net = root.pskNetwork;
+        const psk = root.pskText;
+        root.pskError = "";
+        root.pskNetwork = null;
+        root.pskText = "";
+        net.connectWithPsk(psk);
+    }
+
     // The wifi scanner is off by default in QuickShell — keep it enabled
     // for the whole lifetime of this panel (re-asserted on every poll:
     // the setting is per-device and can be reset by NetworkManager).
@@ -240,7 +260,18 @@ Rectangle {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        if (!netRow.modelData.connected) {
+                        if (netRow.modelData.connected) return;
+                        // Known networks and open networks connect
+                        // directly; secured-and-unknown needs a PSK —
+                        // raise the inline entry row for that network.
+                        const sec = netRow.modelData.security ?? WifiSecurityType.Open;
+                        const needsPsk = !netRow.modelData.known
+                            && sec !== WifiSecurityType.Open
+                            && sec !== WifiSecurityType.Owe;
+                        if (needsPsk) {
+                            root.pskNetwork = netRow.modelData;
+                            root.pskText = "";
+                        } else {
                             netRow.modelData.connect();
                         }
                     }
@@ -254,6 +285,134 @@ Rectangle {
                 color: Theme.textSecondary
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSize - 2
+            }
+        }
+
+        // ── PSK entry row ────────────────────────────────────────────
+        // Raised by clicking a secured, not-yet-known network. Type the
+        // password (masked), Enter or the button submits
+        // connectWithPsk(); a wrong key resurfaces with an error line
+        // the next time the same network is clicked.
+        Rectangle {
+            id: pskRow
+
+            visible: root.pskNetwork !== null
+            Layout.fillWidth: true
+            implicitHeight: pskColumn.implicitHeight + 16
+            radius: 10
+            color: Theme.surfaceContainerHigh
+            border.color: Theme.primary
+            border.width: 1
+
+            ColumnLayout {
+                id: pskColumn
+                anchors.fill: parent
+                anchors.margins: 8
+                spacing: 6
+
+                Text {
+                    Layout.fillWidth: true
+                    text: "Password for "
+                        + (root.pskNetwork !== null
+                            ? (root.pskNetwork.name || root.pskNetwork.address || "network")
+                            : "")
+                    color: Theme.text
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSize - 2
+                    font.bold: true
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        implicitHeight: 32
+                        radius: 16
+                        color: Theme.surfaceContainer
+                        border.color: Theme.outlineVariant
+                        border.width: 1
+
+                        TextInput {
+                            id: pskInput
+                            anchors.fill: parent
+                            anchors.leftMargin: 12
+                            anchors.rightMargin: 12
+                            verticalAlignment: TextInput.AlignVCenter
+                            echoMode: TextInput.Password
+                            color: Theme.text
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSize - 2
+                            clip: true
+
+                            Binding { target: pskInput; property: "text"; value: root.pskText }
+                            onTextEdited: {
+                                root.pskText = text;
+                                root.pskError = "";
+                            }
+
+                            Keys.onReturnPressed: root.submitPsk();
+                            Keys.onEnterPressed: root.submitPsk();
+                            Keys.onEscapePressed: {
+                                root.pskNetwork = null;
+                                root.pskText = "";
+                            }
+                        }
+                    }
+
+                    Text {
+                        text: "󰄬"
+                        color: Theme.primary
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSize
+
+                        MouseArea {
+                            anchors.fill: parent
+                            anchors.margins: -8
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.submitPsk()
+                        }
+                    }
+
+                    Text {
+                        text: "󰅜"
+                        color: Theme.errorColor
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSize
+
+                        MouseArea {
+                            anchors.fill: parent
+                            anchors.margins: -8
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                root.pskNetwork = null;
+                                root.pskText = "";
+                                root.pskError = "";
+                            }
+                        }
+                    }
+                }
+
+                Text {
+                    visible: root.pskError !== ""
+                    Layout.fillWidth: true
+                    text: root.pskError
+                    color: Theme.errorColor
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSize - 3
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+            }
+
+            onVisibleChanged: {
+                if (visible) {
+                    root.pskError = "";
+                    pskInput.forceActiveFocus();
+                }
             }
         }
 
