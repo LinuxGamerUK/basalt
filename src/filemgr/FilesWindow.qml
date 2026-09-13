@@ -1,5 +1,7 @@
+import QtQuick
+import Quickshell
+import Quickshell._Window
 
-// probe
 FloatingWindow {
     color: "red"
     title: "Files probe"
