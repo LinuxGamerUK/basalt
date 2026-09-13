@@ -7,7 +7,7 @@ import Quickshell
 Singleton {
     id: root
 
-    property bool open: false
+    property bool open: true  // debug: force-open at boot
 
     function toggle() {
         root.open = !root.open;
