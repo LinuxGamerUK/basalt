@@ -90,6 +90,18 @@ Rectangle {
             font.pixelSize: Theme.fontSize
         }
 
+        // rfkill — blocked-by-KILL-SWITCH adapters silently refuse every
+        // DBus power write; surface it instead of eating the click.
+        Text {
+            visible: adapter !== null
+                && adapter.state === BluetoothAdapterState.Blocked
+            Layout.fillWidth: true
+            text: " Bluetooth is rfkill-blocked — run:\n sudo rfkill unblock bluetooth\n"
+            color: Theme.errorColor
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSize - 1
+        }
+
         // ── Power row ────────────────────────────────────────────────
         RowLayout {
             visible: adapter !== null
