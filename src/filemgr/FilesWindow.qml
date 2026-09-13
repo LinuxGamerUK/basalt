@@ -298,6 +298,23 @@ FloatingWindow {
         return row !== null && row.d;
     }
 
+    // First open lists HOME; close drains the backend. Driven off the
+    // singleton's notify rather than the WindowInterface's own
+    // visibleChanged (reliable across quickshell builds).
+    Connections {
+        target: FilesState
+
+        function onOpenChanged() {
+            if (FilesState.open) {
+                if (root.currentPath.length === 0) {
+                    root.openPath(Quickshell.env("HOME") || "/");
+                }
+            } else if (engine.running) {
+                engine.quit();
+            }
+        }
+    }
+
     // ── chrome ───────────────────────────────────────────────────────
     ColumnLayout {
         anchors.fill: parent
