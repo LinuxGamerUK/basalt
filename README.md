@@ -266,11 +266,27 @@ Bitten and learned the hard way — they are baked into Basalt's code:
 
 ## Roadmap
 
+- Lock screen — WlSessionLock + PAM (single-file, own task)
+- Media popup — MPRIS now-playing surface
 - PSK entry for connecting to new secured wifi networks from the panel
 
 ## Version history
 
-- **v0.3.3 — 2026-09-07** (this tag): tray moved leftmost of the right
+- **v0.4.0 — 2026-09-13** (this tag): bluetooth control center — bar chip
+  (on/off/connected glyphs) and a panel in the network-panel language:
+  power toggle, scan+pair (one-click), remembered-device list with
+  click-to-connect + per-device forget + battery readouts, discovered
+  device list, live connecting/pairing status; bluez via Quickshell's
+  Bluetooth module (the same D-Bus surface blueman sits on). The module
+  now also ships a headless bluez pairing agent
+  (`basalt-bt-agent.service`) — without any registered agent bluez
+  fails every pairing with "Authentication Failed" and nixpkgs blueman
+  ships no standalone agent binary; rfkill-blocked adapters are
+  surfaced in the panel instead of silently eating the toggle. Launcher
+  populates on first open even before DesktopEntries finishes its async
+  load; optional Hyprland persistent workspace-rule example added
+  (`examples/hyprland/`)
+- **v0.3.3 — 2026-09-07**: tray moved leftmost of the right
   cluster with a breathing gap before the panel buttons; TTY login
   auto-launches Hyprland; keybind exec binds use full paths (Hyprland's
   exec env lacks ~/.local/bin); popup panels converted from PopupWindow
