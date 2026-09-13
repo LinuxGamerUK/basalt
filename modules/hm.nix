@@ -24,6 +24,13 @@ let
       hash = "sha256-G9gr/6ArT86Gf+uofb/EG1Yc1oScrYJavPprEdPA480=";
     };
     cargoLock.lockFile = ./flea.cargo.lock;
+    # The thumbnail jail binds /usr and /etc but not /nix/store, so a
+    # store-path thumbnailer (gdk-pixbuf, ffmpegthumbnailer) cannot
+    # exec inside it — every job fails and thumbnails stay blank on
+    # NixOS. Bind the store into the jail (harmless where absent).
+    postPatch = ''
+      sed -i '0,/^    "\/usr",$/s//    "\/usr",\n    "--ro-bind",\n    "\/nix\/store",\n    "\/nix\/store",/' src/backend/sandbox.rs
+    '';
     # Upstream's 604-test suite assumes a desktop root: /usr/bin/false,
     # system shared-mime-info under /usr/share, GIO — none of which
     # exist inside the Nix sandbox by design (586 pass; the 18 that
