@@ -95,9 +95,9 @@ def main():
     manager = dbus.Interface(
         bus.get_object(BLUEZ_SERVICE, AGENT_MANAGER),
         BLUEZ_SERVICE + ".AgentManager1")
-    manager.UnregisterAgent(AGENT_PATH)  # clear any stale registration
-    manager.RegisterAgent(AGENT_PATH, CAPABILITY)
-    manager.RequestDefaultAgent(AGENT_PATH)
+    manager.UnregisterAgent(dbus.ObjectPath(AGENT_PATH))
+    manager.RegisterAgent(dbus.ObjectPath(AGENT_PATH), CAPABILITY)
+    manager.RequestDefaultAgent(dbus.ObjectPath(AGENT_PATH))
 
     MAINLOOP = GLib.MainLoop()
     try:
