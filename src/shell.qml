@@ -63,7 +63,7 @@ ShellRoot {
 
     // Gabbro IPC — `qs ipc call gabbro toggle` (works only when the
     // basalt module has the file manager enabled: the window's backend
-    // binary resolves `flea` from PATH).
+    // binary resolves `gabbro` from PATH).
     IpcHandler {
         target: "gabbro"
 

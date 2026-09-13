@@ -268,7 +268,7 @@ Bitten and learned the hard way — they are baked into Basalt's code:
 
 - Wifi PSK entry — ~~DONE 2026-09-13 (19b248e)~~
 - **File manager (Gabbro)** — basalt's own Material 3 Quickshell frontend
-  driving flea's MIT Rust backend (pinned upstream, `--backend` NDJSON
+  driving the Gabbro engine (vendored upstream, MIT; `--backend` NDJSON
   over stdin/stdout; pure std Rust). **Core live (validated on
   the P1 canary; rename shipped at 9b065cb):** list view, directory navigation, column-header
   sorting (name/size/mtime, folders-first), hidden toggle, inline

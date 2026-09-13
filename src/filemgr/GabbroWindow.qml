@@ -8,10 +8,10 @@ import Quickshell.Widgets
 import "root:/"
 import "."
 
-// Basalt Gabbro — a Material 3 file-manager window over flea's Rust
-// backend (FileBackend.qml, NDJSON protocol).
+// Basalt Gabbro — a Material 3 file-manager window over the engine
+// (FileBackend.qml, NDJSON protocol — vendored, MIT).
 //
-// Load-bearing rules inherited from flea (upstream AGENTS.md, MIT):
+// Rules (upstream design law, MIT):
 // 1. The QML model is an INTEGER count, never a list — recycled
 //    viewport delegates only; the held window is all file data in use.
 // 2. `list` answers with the first screenful unasked; the client
@@ -50,9 +50,7 @@ FloatingWindow {
     property string statusLine: ""
     property string revealName: ""
 
-    // Preview facilities. thumbs[row]: absent(unknown) | null(waiting) |
-    // ""(no thumbnail, terminal) | "path"(terminal). Same for dirSizes.
-    property var thumbs: ({})
+    // Directory sizes for dir rows (walked on the same settle gate).
     property var dirSizes: ({})
 
     // Tabs: pills of remembered paths; each stores path + cursor.
@@ -173,7 +171,6 @@ FloatingWindow {
         pathField.text = path;
         root.cursorIndex = 0;
         root.revealName = "";
-        root.thumbs = {};
         root.dirSizes = {};
         engine.list(path, Math.max(400, root.windowSize), root.showHidden);
         rememberTab();
@@ -199,7 +196,6 @@ FloatingWindow {
         root.searchScanned = 0;
         root.cursorIndex = 0;
         root.total = 0;
-        root.thumbs = {};
         root.dirSizes = {};
         engine.search(root.currentPath, q, root.showHidden);
     }
@@ -327,56 +323,19 @@ FloatingWindow {
         if (!engine.childRunning || root.total === 0) return;
         const firstVisible = (viewMode === "grid") ? grid.firstVisTile : view.firstVisible;
         const span = Math.max(root.visibleCount, root.visibleTiles) * 2;
-        const wantedThumb = [];
         const wantedDir = [];
-        const stillHere = {};
         for (let i = firstVisible; i < Math.min(root.total, firstVisible + span); i++) {
-            stillHere[i] = true;
             const row = root.rowFor(i);
             if (row === null) continue;
-            // Thumbnail — ask only rows that declared `t` and are unknown/waiting.
-            if (row.t === true && root.thumbs[i] === undefined) {
-                wantedThumb.push(i);
-                const copy = root.thumbs;
-                copy[i] = null;
-                root.thumbs = copy;
-            }
-            // Directory size — same pattern for directory rows.
-            const isDir = row.d === true;
-            if (isDir && root.dirSizes[i] === undefined) {
+            // Directory size walked for the preview + folder tiles.
+            if (row.d === true && root.dirSizes[i] === undefined) {
                 wantedDir.push(i);
                 const ds = root.dirSizes;
                 ds[i] = null;
                 root.dirSizes = ds;
             }
         }
-        // Cancel queries for rows that left the viewport while waiting.
-        cancelStale(root.thumbs, stillHere, true);
-        cancelStale(root.dirSizes, stillHere, false);
-        engine.thumb(wantedThumb);
         engine.dirsize(wantedDir);
-    }
-
-    function cancelStale(map, stillHere, isThumb) {
-        let drops = [];
-        for (const k in map) {
-            const idx = parseInt(k);
-            if (map[k] === null && stillHere[idx] !== true) drops.push(idx);
-        }
-        if (drops.length === 0) return;
-        const copy = {};
-        for (const j in map) {
-            const idx2 = parseInt(j);
-            if (drops.indexOf(idx2) >= 0) continue;
-            copy[j] = map[j];
-        }
-        if (isThumb) {
-            root.thumbs = copy;
-            engine.thumbcancel(drops);
-        } else {
-            root.dirSizes = copy;
-            engine.dirsizecancel();
-        }
     }
 
     // ── chrome ───────────────────────────────────────────────────────
@@ -861,13 +820,9 @@ FloatingWindow {
                                             anchors.fill: parent
                                             asynchronous: true
                                             fillMode: Image.PreserveAspectFit
-                                            visible: root.thumbs[tile.index] !== undefined
-                                                && root.thumbs[tile.index] !== ""
-                                                && root.thumbs[tile.index] !== null
-                                            source: root.thumbs[tile.index] !== undefined
-                                                && root.thumbs[tile.index] !== ""
-                                                && root.thumbs[tile.index] !== null
-                                                ? "file://" + root.thumbs[tile.index]
+                                            visible: root.isImageRow(tile.d)
+                                            source: root.isImageRow(tile.d)
+                                                ? "file://" + root.pathOf(tile.index)
                                                 : ""
                                         }
 
@@ -876,9 +831,7 @@ FloatingWindow {
                                             implicitWidth: 48
                                             implicitHeight: 48
                                             asynchronous: true
-                                            visible: !((root.thumbs[tile.index] !== undefined)
-                                                && root.thumbs[tile.index] !== ""
-                                                && root.thumbs[tile.index] !== null)
+                                            visible: !root.isImageRow(tile.d)
                                             source: tile.d !== null
                                                 ? "image://icon/" + (tile.d.i || "text-x-generic")
                                                 : ""
@@ -952,7 +905,6 @@ FloatingWindow {
                                 implicitHeight: 64
                                 asynchronous: true
                                 visible: root.cursorRowInfo !== null
-                                    && root.previewThumbPath === ""
                                     && !root.isImageRow(root.cursorRowInfo)
                                 source: root.cursorRowInfo !== null
                                     ? "image://icon/" + (root.cursorRowInfo.i || "text-x-generic")
@@ -1038,7 +990,7 @@ FloatingWindow {
     }
 
     // .png/.jpg/.jpeg/.gif/.webp/.avif/.bmp — direct file render, no
-    // thumb pipeline; the flea cache stays for grid thumbnails later.
+    // thumb pipeline; the grid uses the same direct load.
     readonly property var imageExts: [".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif", ".bmp"]
     function isImageRow(row) {
         if (row === null || row.d) return false;
@@ -1047,14 +999,6 @@ FloatingWindow {
     }
 
     readonly property var cursorRowInfo: root.rowFor(root.cursorIndex)
-
-    readonly property string previewThumbPath: {
-        if (root.thumbs[root.cursorIndex] === null || root.thumbs[root.cursorIndex] === undefined
-            || root.thumbs[root.cursorIndex] === "") {
-            return "";
-        }
-        return root.thumbs[root.cursorIndex];
-    }
 
     readonly property string previewFacts: {
         if (root.cursorRowInfo === null) return "";
@@ -1179,13 +1123,6 @@ FloatingWindow {
 
         onChanged: function (path) {
             if (!root.searchMode && path === root.currentPath) root.refresh();
-        }
-
-        onThumbed: function (rowIdx, file) {
-            if (rowIdx < 0 || rowIdx >= root.total) return;
-            const copy = root.thumbs;
-            copy[rowIdx] = file || "";
-            root.thumbs = copy;
         }
 
         onDirsized: function (rowIdx, bytes) {

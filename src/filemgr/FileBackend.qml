@@ -4,9 +4,9 @@ import Quickshell
 import Quickshell.Io
 
 
-// Basalt Files backend bridge — flea's NDJSON protocol over
-// `flea --backend` (stdin/stdout, one JSON line each way). Upstream
-// contract: flea docs/protocol.md (MIT). Trimmed to v1's surface.
+// Gabbro backend bridge — the engine's NDJSON protocol over
+// `gabbro --backend` (stdin/stdout, one JSON line each way), vendored
+// from upstream (MIT). Trimmed to v0.5's surface.
 Item {
     id: root
 
@@ -53,16 +53,6 @@ Item {
 
     function sort(by, desc) {
         root.send({ c: "sort", by: by, desc: desc, foldersFirst: true });
-    }
-
-    function thumb(rows) {
-        if (rows.length === 0) return;
-        root.send({ c: "thumb", rows: rows });
-    }
-
-    function thumbcancel(rows) {
-        if (rows.length === 0) return;
-        root.send({ c: "thumbcancel", rows: rows });
     }
 
     function dirsize(rows) {
@@ -156,9 +146,6 @@ Item {
         case "paths":
             root.pathsReply(m.paths || []);
             break;
-        case "thumbed":
-            root.thumbed(m.row, m.file || "");
-            break;
         case "dirsized":
             root.dirsized(m.row, m.bytes || 0);
             break;
@@ -176,13 +163,13 @@ Item {
     property bool quitting: false
     property bool hasListed: false
 
-    // FLEA_BIN dev seam (upstream). Resolved by PATH in the running env.
-    readonly property string fleaBin: Quickshell.env("FLEA_BIN") || "flea"
+    // GABBRO_BIN dev seam — an override binary without a rebuild.
+    readonly property string commandName: Quickshell.env("GABBRO_BIN") || "gabbro"
     readonly property bool childRunning: child.running
 
     Process {
         id: child
-        command: [fleaBin, "--backend"]
+        command: [commandName, "--backend"]
         running: true
         stdinEnabled: true
 

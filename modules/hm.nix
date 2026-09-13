@@ -11,11 +11,13 @@ let
     ps.pygobject3
   ]);
 
-  # flea's Rust backend (the Files window's engine) — pinned upstream.
-  # Pure-std Rust, zero dependencies (upstream Cargo.lock committed at
-  # modules/flea.cargo.lock); only the `--backend` NDJSON mode is used.
+  # Gabbro's Rust engine — the file-manager backend — vendored from
+  # upstream (MIT, pinned rev; attribution kept in the meta). Pure-std
+  # Rust, zero dependencies (upstream lock committed at
+  # modules/engine-cargo.lock); only the `--backend` NDJSON mode runs,
+  # and the shipped binary is renamed `gabbro` at install time.
   fileManagerPackage = pkgs.rustPlatform.buildRustPackage {
-    pname = "flea";
+    pname = "gabbro";
     version = "0.2.1";
     src = pkgs.fetchFromGitHub {
       owner = "thisisgm";
@@ -23,7 +25,7 @@ let
       rev = "c6a014999696fe67a899013d97ebccf889e98f47";
       hash = "sha256-G9gr/6ArT86Gf+uofb/EG1Yc1oScrYJavPprEdPA480=";
     };
-    cargoLock.lockFile = ./flea.cargo.lock;
+    cargoLock.lockFile = ./engine-cargo.lock;
     # The thumbnail jail binds /usr and /etc but not /nix/store, so a
     # store-path thumbnailer (gdk-pixbuf, ffmpegthumbnailer) cannot
     # exec inside it — every job fails and thumbnails stay blank on
@@ -38,6 +40,11 @@ let
     # packaging build; the real verification surface is Files' protocol
     # behaviour live.
     doCheck = false;
+    # Ship the engine under the product's own name — the ndjson surface
+    # is identical; only the argv name changes.
+    postInstall = ''
+      mv $out/bin/flea $out/bin/gabbro
+    '';
     meta = { license = pkgs.lib.licenses.mit; };
   };
 in
@@ -61,7 +68,7 @@ in
     fileManager = {
       enable = mkEnableOption ''
         the Basalt file manager (Files) — a Material 3 Quickshell frontend
-        driving flea's MIT Rust backend (pinned upstream; pure std Rust,
+        driving the Gabbro engine (vendored upstream, MIT; pure std Rust,
         zero dependencies, see src/filemgr/)'';
     };
   };
@@ -89,11 +96,11 @@ in
       # and the GIO application query/launcher, both by XDG spec.
       pkgs.shared-mime-info
       pkgs.glib
-      # flea's thumbnail workers sandbox themselves with bwrap/prlimit;
+      # The engine's thumbnail workers sandbox themselves with bwrap/prlimit;
       # without either on PATH thumbnails are disabled (warned once).
       pkgs.bubblewrap
       pkgs.util-linux
-      # Image thumbnails: flea asks for a validated thumbnailer spec per
+      # Image thumbnails: the engine asks for a validated thumbnailer spec per
       # MIME type (freedesktop thumbnailer spec); gdk-pixbuf's shipping
       # spec covers the common image formats. Also ffmpeg for video and
       # ffmpegthumbnailer for media frames.
@@ -137,7 +144,7 @@ in
         # per-user profile carries this module's packages.
         Environment = [
           "PATH=%h/.local/bin:/etc/profiles/per-user/%u/bin:%h/.nix-profile/bin:/run/current-system/sw/bin:/usr/bin:/bin"
-          # The flea backend resolves MIME/glob databases and the GIO
+          # The engine resolves MIME/glob databases and the GIO
           # application launcher by XDG_DATA_DIRS — %h/.nix-profile/share
           # carries this module's shared-mime-info; current-system and
           # the default profile close the rest.

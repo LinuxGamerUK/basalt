@@ -18,11 +18,11 @@ with lib;
     };
     security.rtkit.enable = mkDefault true;
 
-    # The flea backend (Gabbro's engine) resolves MIME types against a
-    # hardcoded /usr/share/mime — absent on NixOS (everything lives in
-    # store paths). A /usr/share/mime symlink is the least invasive
-    # step; only created when the file manager is enabled. Harmless on
-    # distros where that path already exists.
+    # The Gabbro engine (vendored, see the hm module) resolves MIME
+    # types against a hardcoded /usr/share/mime — absent on NixOS
+    # (everything lives in store paths). A /usr/share/mime symlink is
+    # the least invasive step; only created when the file manager is
+    # enabled. Harmless on distros where that path already exists.
     systemd.tmpfiles.rules = [
       "L+ /usr/share/mime - - - - ${pkgs.shared-mime-info}/share/mime"
     ];
