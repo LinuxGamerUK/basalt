@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
-
 import "root:/"
+
 
 // Basalt Files backend bridge — flea's NDJSON protocol over
 // `flea --backend` (stdin/stdout, one JSON line each way). Upstream
@@ -31,6 +31,8 @@ Item {
 
     // Single write author.
     function send(obj) {
+        FilesState.diag = "bridge: sending " + (obj.c || "?")
+            + " (queueing=" + queueing + " running=" + child.running + ")";
         const line = JSON.stringify(obj) + "\n";
         if (queueing) { pending.push(line); return; }
         if (!child.running) { root.failed("backend", "backend not running"); return; }
@@ -159,6 +161,7 @@ Item {
 
         onStarted: {
             root.queueing = false;
+            FilesState.diag = "bridge: backend started, pending=" + root.pending.length;
             for (let i = 0; i < root.pending.length; i++)
                 child.write(root.pending[i]);
             root.pending = [];
