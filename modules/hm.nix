@@ -8,7 +8,7 @@ let
   # The pairing agent needs D-Bus bindings the stock python3 lacks.
   agentPython = pkgs.python3.withPackages (ps: [
     ps.dbus-python
-    ps.pygobject
+    ps.pygobject3
   ]);
 in
 {
