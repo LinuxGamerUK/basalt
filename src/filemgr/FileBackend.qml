@@ -72,6 +72,12 @@ Item {
 
     function searchcancel() { root.send({ c: "searchcancel" }); }
 
+    // Read-only look at a directory that is NOT the current listing —
+    // the columns view's home. Replies are one-shot snapshots.
+    function peek(path, first, hidden) {
+        root.send({ c: "peek", path: path, first: first, hidden: hidden });
+    }
+
     function trash(rows) {
         if (rows.length === 0) return;
         root.send({ c: "trash", rows: rows });
@@ -148,6 +154,9 @@ Item {
             break;
         case "dirsized":
             root.dirsized(m.row, m.bytes || 0);
+            break;
+        case "peeked":
+            root.peeked(m.path || "", m.failed === true, m.n || 0, m.rows || []);
             break;
         case "transferprogress":
             root.transferProgress(m.index, m.name, m.bytes, m.total);

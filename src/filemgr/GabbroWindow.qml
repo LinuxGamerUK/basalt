@@ -54,6 +54,14 @@ FloatingWindow {
     // Directory sizes for dir rows (walked on the same settle gate).
     property var dirSizes: ({})
 
+    // Columns view: stacked dir columns backed by backend `peek`
+    // snapshots (read-only; does not disturb the held row window).
+    property var columnPaths: []
+    property var columnData: []   // [{rows,total}] parallel to columnPaths
+    property var columnCursor: []
+    property int activeColumn: 0
+    readonly property int columnCount: Math.max(1, root.columnPaths.length)
+
     // Tabs: pills of remembered paths; each stores path + cursor.
     property var tabs: [{ path: "", cursor: 0 }]
     property int tabIndex: 0
@@ -208,7 +216,41 @@ FloatingWindow {
         refresh();
     }
 
-    function open(index) {
+    // ── columns view ─────────────────────────────────────────────────
+    function enterColumns() {
+        root.viewMode = "columns";
+        var base = root.currentPath.length > 0 ? root.currentPath : (Quickshell.env("HOME") || "/");
+        root.columnPaths = [base];
+        root.columnData = [{ rows: [], total: 0 }];
+        root.columnCursor = [root.cursorIndex];
+        root.activeColumn = 0;
+        refreshColumns();
+    }
+
+    function refreshColumns() {
+        for (let i = 0; i < root.columnPaths.length; i++) {
+            engine.peek(root.columnPaths[i], 500, root.showHidden);
+        }
+    }
+
+    function columnOpenDir(i, path) {
+        // Extend: replace everything deeper than i with the child.
+        const paths = root.columnPaths.slice(0, i + 1).concat([path]);
+        root.columnPaths = paths;
+        root.columnData = root.columnData.slice(0, i + 1).concat([{ rows: [], total: 0 }]);
+        root.columnCursor = root.columnCursor.slice(0, i + 1).concat([0]);
+        root.activeColumn = i + 1;
+        if (i + 1 >= 3) {
+            // At the cap, the new column replaces the last.
+            root.columnPaths = root.columnPaths.slice(0, 3).slice(0, i + 1).concat([path]).slice(-3);
+            refreshColumns();
+        }
+        refreshColumns();
+    }
+
+    function onColumnDataChanged_() {}  // no-op marker; row updates apply per-path
+
+
         const row = root.rowFor(index);
         if (row === null) return;
         if (row.d) {
@@ -500,6 +542,24 @@ FloatingWindow {
                     anchors.margins: -6
                     cursorShape: Qt.PointingHandCursor
                     onClicked: root.trashSelection()
+                }
+            }
+
+            // column view toggle
+            Text {
+                text: "󱐋"
+                color: root.viewMode === "columns" ? Theme.primary : Theme.text
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSize
+
+                MouseArea {
+                    anchors.fill: parent
+                    anchors.margins: -6
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if (root.viewMode === "columns") { root.viewMode = "list"; }
+                        else { root.enterColumns(); }
+                    }
                 }
             }
 
@@ -870,6 +930,95 @@ FloatingWindow {
                             }
                         }
                     }
+
+                // ── columns view ─────────────────────────────────────
+                RowLayout {
+                    anchors.fill: parent
+                    spacing: 6
+                    visible: root.viewMode === "columns"
+
+                    Repeater {
+                        model: 3
+
+                        delegate: ListView {
+                            id: colView
+                            required property int index
+                            readonly property var col: root.columnData[index] || { rows: [], total: 0 }
+                            readonly property string colPath: root.columnPaths[index] || ""
+
+                            Layout.fillWidth: index === root.activeColumn
+                            Layout.preferredWidth: 230
+                            Layout.fillHeight: true
+                            clip: true
+                            boundsBehavior: Flickable.StopAtBounds
+                            spacing: 2
+                            visible: index < root.columnCount
+
+                            model: visible ? (root.columnData[index] || { total: 0 }).total : 0
+
+                            delegate: Rectangle {
+                                id: colRow
+                                required property int index
+                                property var rowDat: (root.columnData[parent.col.index] || { rows: [] }).rows[colRow.index] || null
+                                property string path: (root.columnPaths[parent.col.index] || "")
+                                property string fullPath: root.join(root.columnPaths[parent.col.index] || "", (rowDat === null ? "" : (root.searchMode ? root.displayNameOf(rowDat) : rowDat.n)))
+                                width: parent ? parent.width : 0
+                                height: root.rowH
+                                radius: 6
+                                color: colRowMouse.containsMouse ? Theme.surfaceContainerHigh : "transparent"
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 6
+                                    spacing: 6
+
+                                    IconImage {
+                                        Layout.preferredWidth: 18
+                                        Layout.preferredHeight: 18
+                                        asynchronous: true
+                                        visible: colRow.rowDat !== null
+                                        source: colRow.rowDat !== null
+                                            ? "image://icon/" + (colRow.rowDat.i || "text-x-generic")
+                                            : ""
+                                    }
+
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: colRow.rowDat !== null ? (colRow.rowDat.n || "") : "…"
+                                        color: Theme.text
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: Theme.fontSize - 3
+                                        elide: Text.ElideRight
+                                        maximumLineCount: 1
+                                    }
+                                }
+
+                                MouseArea {
+                                    id: colRowMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+
+                                    onClicked: (mouse) => {
+                                        root.activeColumn = colView.index;
+                                        if (mouse.modifiers & Qt.ControlModifier) root.toggleSel(colRow.index);
+                                        else root.clearSel();
+                                    }
+
+                                    onDoubleClicked: {
+                                        const rd = colRow.rowDat;
+                                        if (rd === null || rd === undefined || rd === false) return;
+                                        if (rd.d) {
+                                            root.columnOpenDir(colView.index, root.join(root.columnPaths[colView.index] || "/", rd.n));
+                                        } else {
+                                            Qt.openUrlExternally(root.join(root.columnPaths[colView.index] || "/", rd.n));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 }
 
                 // ── preview pane ─────────────────────────────────────────
@@ -1178,6 +1327,14 @@ FloatingWindow {
             const copy = root.dirSizes;
             copy[rowIdx] = bytes;
             root.dirSizes = copy;
+        }
+
+        onPeeked: function (path, failed, n, rows) {
+            const i = root.columnPaths.indexOf(path);
+            if (i < 0) return;
+            const data = root.columnData.slice();
+            data[i] = { rows: rows, total: failed ? 0 : n };
+            root.columnData = data;
         }
     }
 
